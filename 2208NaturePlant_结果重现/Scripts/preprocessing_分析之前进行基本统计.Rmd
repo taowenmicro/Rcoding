@@ -1,0 +1,188 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+
+Load libraries
+```{r}
+library(tidyverse)
+source("../General/rmb_functions.R")
+```
+
+Load data
+```{r}
+map <- readRDS("../Data/drought_map.RDS")
+whole.otu <- readRDS("../Data/otu_unfiltered.RDS")
+tax <- readRDS("../Data/tax.RDS")
+tax <- classify_organelle(tax)
+```
+
+### 评估序列中微生物序列和其他序列的比例
+tax数据中对微生物分类信息进行了统计，Assignment列就是本次统计的指标
+
+```{r}
+
+org.tidy <- whole.otu %>% 
+  tidy_otu() %>% 
+  inner_join(tax) %>% 
+  group_by(SampleID, Assignment) %>% 
+  summarise(Total = sum(Count)) %>% 
+  group_by(SampleID) %>% 
+  mutate(RelAb = Total/sum(Total))
+
+org.tidy %>% 
+  inner_join(map, by = "SampleID") %>% 
+  ggplot(aes(Tub, RelAb, fill = Assignment)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(name = "Classification", values = org.pal) +
+  facet_grid(Compartment ~ Time, scales = "free") +
+  theme_light() +
+  theme(text = element_text(size = 20))
+
+```
+
+
+### 提取微生物的序列
+
+
+```{r}
+micro.id <- tax %>% 
+  filter(Assignment == "Microbial") %>% 
+  .$OTU_ID
+
+otu.micro <- whole.otu[row.names(whole.otu) %in% micro.id,]
+otu.micro.tidy <- tidy_otu(otu.micro)
+```
+
+### 区分大量OTU和微量OTU
+
+
+```{r}
+
+pers.tresh <- 0.05 * ncol(otu.micro) 
+
+pers.stat <- otu.micro.tidy %>% 
+  group_by(OTU_ID) %>% 
+  summarise(Persistence = sum(Count > 0),
+         TotalCounts = sum(Count),
+         Status = ifelse(Persistence > pers.tresh, "Persistent", "NonPersistent")) 
+
+pers.id <- pers.stat %>% 
+  filter(Status == "Persistent") %>% 
+  .$OTU_ID
+
+otu.pers <- otu.micro[rownames(otu.micro) %in% pers.id,]
+
+```
+
+探索大量OTU的存在模式
+Explore the general persistence patterns
+
+
+```{r}
+
+pers.dot <- pers.stat %>% 
+  ggplot(aes(TotalCounts, Persistence)) +
+  geom_point(alpha = 0.3) +
+  geom_hline(yintercept = pers.tresh, color = "red", size = 1, linetype = 2) +
+  scale_x_log10() +
+  theme_light() +
+  theme(text = element_text(size = 20))
+
+pers.hist <- pers.stat %>% 
+  ggplot(aes(Persistence)) +
+  geom_histogram(binwidth = 10) +
+  geom_vline(xintercept = pers.tresh, color = "red", size = 1, linetype = 2) +
+  coord_flip() +
+  xlab("") +
+  theme_light() +
+  theme(text = element_text(size = 20),
+        axis.text.y = element_blank())
+
+cowplot::plot_grid(pers.dot, pers.hist, nrow = 1)
+
+```
+
+Explore how much data gets lost after filtering non-prevalent OTUs
+
+```{r}
+
+pers.stat %>% 
+  group_by(Persistence) %>% 
+  summarise(CumSum = sum(TotalCounts)) %>% 
+  arrange(Persistence) %>% 
+  ungroup() %>% 
+  arrange(Persistence) %>% 
+  mutate(TotalCumSum = cumsum(CumSum)) %>% 
+  mutate(PercentReads = TotalCumSum/max(TotalCumSum) * 100) %>% 
+  ggplot(aes(Persistence, PercentReads)) +
+  geom_vline(xintercept = pers.tresh, color = "red", size = 1, linetype = 2) +
+  geom_point() +
+  theme_bw() +
+  theme(text = element_text(size = 15))
+
+```
+
+
+Get the sequencing depth and richness for each of the otu tables
+
+```{r}
+seqstats <- data.frame(SampleID = colnames(otu.pers),
+                  PersistentSeqDepth = colSums(otu.pers),
+                  MicroSeqDepth = colSums(otu.micro),
+                  TotalSeqDepth = colSums(whole.otu),
+                  PersistentRichness = colSums(otu.pers > 0),
+                  MicroRichness = colSums(otu.micro > 0),
+                  TotalRichness = colSums(whole.otu > 0))
+
+seqstats.tidy <- seqstats %>% 
+  gather(key = "Type", value = "SeqDepth", PersistentSeqDepth:TotalSeqDepth) %>% 
+  mutate(Type = str_replace(Type, "SeqDepth", "")) %>% 
+  gather(key = "Type2", value = "Richness", PersistentRichness:TotalRichness) %>% 
+  mutate(Type2 = str_replace(Type2, "Richness", "")) %>% 
+  filter(Type == Type2) %>% 
+  select(-Type2) %>% 
+  inner_join(map, by = "SampleID")
+
+seqstats.tidy
+
+```
+
+Get more sequencing stats
+
+```{r}
+sets <- list(raw.data = whole.otu,
+          no_plant = otu.micro,
+          filtered = otu.pers)
+
+stats <- data.frame(nOTUs = sapply(sets, function(x) nrow(x)),
+                    mean_SeqDepth = sapply(sets, function(x) mean(colSums(x))),
+                    sd_SeqDepth = sapply(sets, function(x) sd(colSums(x))),
+                    TotReads = sapply(sets, function(x) sum(x)),
+                    PercenOrig = sapply(sets, function(x) sum(x)/sum(whole.otu)),
+                    PercenMicrobial = sapply(sets, function(x) sum(x)/sum(otu.micro)))
+
+stats
+```
+
+```{r}
+colSums(whole.otu)
+colSums(otu.micro)
+colSums(otu.pers)
+
+data.frame(SampleID = colnames(otu.pers),
+           Whole = colSums(whole.otu),
+           Micro = colSums(otu.micro),
+           Pers = colSums(otu.pers)) %>% 
+  inner_join(map, by = "SampleID") %>% 
+  group_by(Compartment) %>% 
+  summarise(Whole = sum(Whole),
+            Micro = sum(Micro),
+            Pers = sum(Pers)) %>% 
+  ungroup() %>% 
+  mutate(PercMicro = Micro/Whole,
+         PercPers = Pers/Whole)
+```
+

@@ -1,0 +1,138 @@
+
+
+Load libraries
+
+```{r}
+source("../General/rmb_functions.R")
+source("../General/parameters.R")
+library(tidyverse)
+```
+
+Load data and reformat
+
+```{r}
+mbio.map <- readRDS("../Data/mbio_map.RDS") %>% 
+  mutate(Compartment = fct_recode(Compartment,
+         "Rhizosphere" = "RS",
+         "Endosphere" = "ES"),
+         Soil = fct_recode(Soil,
+                           "Davis" = "D",
+                           "Arbuckle" = "A",
+                           "Biggs" = "B")) 
+msys.map <- readRDS("../Data/msys_map.RDS")
+
+meta.map <- rbind(select(mbio.map, SampleID, Compartment, Treatment, Soil) %>% mutate(Experiment = "mBio"),
+                  select(msys.map, SampleID, Compartment) %>% mutate(Treatment = "WC", Soil = "Arkansas", Experiment = "mSys"))
+
+
+otu <- readRDS("../Data/otu_meta.RDS")
+row.names(otu) <- otu$OTU_ID 
+otu <- otu[,-1]
+otu[1:5, 1:5]
+
+tax <- readRDS("../Data/tax.RDS")
+tax <- classify_organelle(tax)
+organelle.id <- filter(tax, Assignment != "Microbial")$OTU_ID
+
+otu <- otu[!row.names(otu) %in% organelle.id,]
+
+tidy.otu <- otu %>% 
+  tidy_otu()
+
+```
+
+### meta分析这个链霉菌在其他研究中的状况
+
+当然这部分数据并不在这里提供，所以我们无法得知。
+
+Plot the drought response of OTU 1037355 in the data from Santos-Medellin, mBio 2017
+
+
+
+```{r}
+
+wald <- read.table("./RiceDroughtMB/Tables/16S_dab.tsv", header = T, sep = "\t")
+
+wald <- wald %>% filter(OTU_ID == "1037355") %>% 
+  select(Soil, Compartment, p.adjusted) %>% 
+  mutate(Soil = fct_recode(Soil, 
+                          "Arbuckle" = "A",
+                          "Biggs" = "B",
+                          "Davis" = "D"),
+         Compartment = fct_recode(Compartment,
+                                  "Rhizosphere" = "RS",
+                                  "Endosphere" = "ES") )
+
+drought.p <- tidy.otu %>% 
+  inner_join(mbio.map, by = "SampleID") %>% 
+  group_by(SampleID) %>% 
+  mutate(RelAb = Count/sum(Count)) %>% 
+  ungroup() %>% 
+  filter(OTU_ID == "1037355") %>% 
+  filter(Compartment %in% c("Rhizosphere", "Endosphere")) %>% 
+  mutate(Compartment = fct_relevel(Compartment, "Rhizosphere", "Endosphere")) %>% 
+  filter(Compartment != "Bulk Soil") %>% 
+  mutate(Treatment = fct_relevel(Treatment, "WC")) %>% 
+  ggplot() +
+  geom_boxplot(aes(Treatment, RelAb, color = Treatment), outlier.shape = NA) +
+  geom_jitter(aes(Treatment, RelAb, color = Treatment)) +
+  geom_segment(data = wald, aes(x = 1, xend = 2, y = 0.25, yend = 0.25)) +
+  geom_text(data = wald, aes(x = 1.5, y = 0.3, label = "***", hjust = 0.5)) +
+  scale_y_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  scale_color_manual(values = trt.pal[c(1,3)]) +
+  ylab("Relative abundance (log10)") +
+  facet_grid(. ~ Compartment + Soil) +
+  theme_classic() +
+  theme(text = element_text(size = 15),
+        legend.position = "none",
+        panel.border = element_blank())
+
+drought.p
+```
+
+Plot the abundance-occupancy spectra across soils
+
+```{r}
+n.samples <- meta.map %>% 
+  group_by(Experiment, Compartment, Soil) %>% 
+  summarise(nSamples = n())
+
+oc.ab <- tidy.otu %>% 
+  group_by(SampleID) %>% 
+  mutate(RelAb = Count/sum(Count)) %>% 
+  inner_join(meta.map) %>% 
+  filter(Compartment %in% c("Rhizosphere", "Endosphere")) %>% 
+  group_by(Experiment, Compartment, Soil, OTU_ID) %>% 
+  summarise(MeanRelAb = mean(RelAb),
+            Occupancy = sum(Count > 0)) %>% 
+  ungroup() %>% 
+  inner_join(n.samples, by = c("Experiment", "Compartment", "Soil")) %>% 
+  mutate(OccupancyPct = Occupancy/nSamples)
+
+oc.ab.p <- oc.ab %>% 
+  filter(Occupancy > 0) %>% 
+  ggplot(aes(MeanRelAb, OccupancyPct)) +
+  geom_point(shape = 1, color = "gray25", alpha = 0.5) +
+  geom_point(data = filter(oc.ab, OTU_ID == "1037355"), shape = 21, fill = phy.pal[3], color = "black", size = 3, stroke = 1) +
+   scale_x_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  xlab("Mean relative\nabundance (log10)") +
+  ylab("Occupancy (% samples)") +
+  facet_grid(Compartment ~ Soil) +
+  theme_classic() +
+  theme(text = element_text(size = 15), 
+        legend.position = "bottom",
+        legend.title = element_blank())
+
+oc.ab.p
+```
+Check the stats on OTU 1037355    
+```{r}
+oc.ab %>% filter(OTU_ID == "1037355")
+```
+
+Put it all together
+```{r}
+cowplot::plot_grid(oc.ab.p, drought.p, nrow = 2,
+                   labels = c("A", "B"), label_size = 20)
+```
+

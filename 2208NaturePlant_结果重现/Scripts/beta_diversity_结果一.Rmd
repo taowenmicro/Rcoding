@@ -1,0 +1,753 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+
+
+### 载入R包
+
+```{r}
+
+source("./General/rmb_functions.R")
+source("./General/parameters.R")
+library(vegan)
+library(broom)
+library(contrast)
+library(cowplot)
+library(ggConvexHull)
+# devtools::install_github("cmartin/ggConvexHull")
+library(tidyverse)
+```
+
+载入距离矩阵和分组文件
+
+```{r}
+
+wuf <- readRDS("./Data/wuf.RDS")
+map <- readRDS("./Data/drought_map.RDS")
+
+```
+
+
+
+Remove samples used to train RF model
+Generate a column that treats time point as a discrete variable rather than continuous (relevant for testing the effect of treatment at each time point)
+
+去除一些样本后，构建随机森林模型
+
+```{r}
+
+map <- filter(map, Treatment2 != "WC_TRN")
+map$TimeFctr <- as.factor(map$Time)
+
+```
+
+
+### 进行群落差异检测
+
+使用置换多元方差分析adonis。探索了不同取样部位，取样时间，处理的作用。strata 地块仍然作为随机误差。
+
+```{r}
+# 对距离矩阵匹配后进行多元置换方差检验
+wuf <- wuf[match(map$SampleID, rownames(wuf)), match(map$SampleID, colnames(wuf))]
+
+pmanova <- adonis(as.dist(wuf) ~ Compartment * as.factor(Time) * Treatment, strata = as.factor(map$Row),  data = map)
+pmanova
+
+```
+
+### 基于bray距离计算PCOA排序
+
+```{r}
+
+
+#--基于距离矩阵的pcoa排序分析
+pcoa.axes <- pcoa_axes(wuf, map)
+#-提取解释度
+pcoa.eig <- pcoa_eigval(wuf, map)
+
+all.pcoa.p <- pcoa.axes %>% 
+  mutate(Compartment = fct_recode(Compartment,
+                                  "Rhizosphere" = "RS",
+                                  "Endosphere" = "ES")) %>% 
+  mutate(Compartment = fct_relevel(Compartment, "Rhizosphere")) %>% 
+  ggplot(aes(Axis.1, Axis.2)) +
+  geom_point(aes(color = Compartment), size = 2, shape = 16) +
+  xlab(paste("PCo1 (", pcoa.eig$Eigval[1], "%)", sep = "")) +
+  ylab(paste("PCo2 (", pcoa.eig$Eigval[2], "%)", sep = "")) +
+  scale_color_manual(values = cmp.pal) +
+  theme_classic() +
+  theme(text = element_text(size = 15),
+        legend.position = "top")
+
+all.pcoa.p
+
+
+```
+
+### 组内和组间距离展示
+
+这里添加了边际地毯，查看分组数据趋势。
+
+```{r}
+
+dist.tidy <- wuf %>% 
+  as.matrix() %>% 
+  as.data.frame() %>% 
+  mutate(SampleID.x = row.names(.)) %>% 
+  gather(key = "SampleID.y", value = "Distance", -SampleID.x) %>% 
+  filter(!is.na(Distance)) %>% 
+  filter(Distance > 0) %>% 
+  inner_join(select(map, SampleID, Compartment, Treatment, Time, CollectionDate, Age, WaterStatus), by = c("SampleID.x" = "SampleID")) %>% 
+  inner_join(select(map, SampleID, Compartment, Treatment, Time, CollectionDate, Age, WaterStatus), by = c("SampleID.y" = "SampleID"))
+
+dist.within <- dist.tidy %>% 
+  filter(Compartment.x == Compartment.y) %>% 
+  filter(Treatment.x == Treatment.y) %>% 
+  filter(Time.x == Time.y)
+  
+cmp.box <- dist.within %>% 
+  mutate(Compartment = fct_relevel(Compartment.x, "RS")) %>% 
+  mutate(Compartment = fct_recode(Compartment, Rhizosphere = "RS", Endosphere = "ES")) %>% 
+  ggplot(aes(Compartment, Distance, color = Compartment)) +
+  geom_boxplot(size = 1) +
+  geom_rug() +
+  ylab("Within-Compartment\nDistance") +
+  xlab("Compartment") +
+  scale_color_manual(values = cmp.pal) +
+  theme_classic() +
+  theme(text = element_text(size = 15),
+        legend.position = "top")
+
+cmp.box
+
+
+```
+
+组合排序图和距离差异
+
+
+```{r}
+
+plot_grid(all.pcoa.p,
+          cmp.box,
+          nrow = 1,
+          align = "v",
+          labels = c("A", "B"),
+          label_size = 20)
+
+
+```
+
+### 区分空间或者时间展示群落排序结果和距离
+
+提取数据子集。按照根际和根内进行区分
+
+```{r}
+
+wuf <- as.matrix(wuf)
+
+rs.map <- filter(map, Compartment == "RS")
+rs.wuf <- wuf[match(rs.map$SampleID, row.names(wuf)), match(rs.map$SampleID, colnames(wuf))]
+
+es.map <- filter(map, Compartment == "ES")
+es.wuf <- wuf[match(es.map$SampleID, row.names(wuf)), match(es.map$SampleID, colnames(wuf))]
+```
+
+基于每个部分单独进行群落差异检测
+
+```{r}
+
+rs.pmanova <- adonis(as.dist(rs.wuf) ~ as.factor(Time) * Treatment, strata = rs.map$Row,  data = rs.map)
+rs.pmanova
+
+es.pmanova <- adonis(as.dist(es.wuf) ~ as.factor(Time) * Treatment, strata = es.map$Row,  data = es.map)
+es.pmanova
+```
+  
+基于每个部分进行pcoa分析
+
+```{r}
+
+rs.pcoa.axes <- pcoa_axes(rs.wuf, rs.map)
+rs.pcoa.eig <- pcoa_eigval(rs.wuf, rs.map)
+
+es.pcoa.axes <- pcoa_axes(es.wuf, es.map)
+es.pcoa.eig <- pcoa_eigval(es.wuf, es.map)
+```
+
+Plot PCoA
+
+```{r}
+#-根际的样本单独展示排序图，按照时间上色
+rs.pc.time <- rs.pcoa.axes %>% 
+  ggplot(aes(Axis.1, Axis.2, color = Age)) +
+  geom_point(size = 2) +
+  scale_color_viridis_c(name = "Plant Age\n(days)") +
+  xlab(paste("PCo1 (", rs.pcoa.eig$Eigval[1], "%)", sep = "")) +
+  ylab(paste("PCo2 (", rs.pcoa.eig$Eigval[2], "%)", sep = "")) +
+  theme_classic() +
+  theme(text = element_text(size = 15),
+        legend.position = "top",
+        legend.title.align = 1)
+# 按照处理上色 看不出来规律
+rs.pc.trt <- rs.pcoa.axes %>% 
+  mutate(Treatment = fct_recode(Treatment,
+                                "DS1" = "D1",
+                                "DS2" = "D2",
+                                "DS3" = "D3")) %>% 
+  mutate(Treatment = fct_relevel(Treatment, "WC")) %>% 
+  ggplot(aes(Axis.1, Axis.2, color = Treatment)) +
+  geom_point(size = 2) +
+  scale_color_manual(values = trt.pal,
+                     guide = guide_legend(title.position = "top",
+                                          title.hjust = 0.5)) +
+  xlab(paste("PCo1 (", rs.pcoa.eig$Eigval[1], "%)", sep = "")) +
+  ylab(paste("PCo2 (", rs.pcoa.eig$Eigval[2], "%)", sep = "")) +
+  theme_classic() +
+  theme(text = element_text(size = 15),
+        legend.position = "none")
+
+# 根内样本排序展示
+es.pc.time <- es.pcoa.axes %>% 
+  ggplot(aes(Axis.1, Axis.2, color = Age)) +
+  geom_point(size = 2) +
+  scale_color_viridis_c() +
+  xlab(paste("PCo1 (", es.pcoa.eig$Eigval[1], "%)", sep = "")) +
+  ylab(paste("PCo2 (", es.pcoa.eig$Eigval[2], "%)", sep = "")) +
+  theme_classic() +
+  theme(text = element_text(size = 15),
+        legend.position = "top")
+# 根内样本，按照处理上色
+es.pc.trt <- es.pcoa.axes %>% 
+  ggplot(aes(Axis.1, Axis.2, color = Treatment)) +
+  geom_point(size = 2) +
+  scale_color_manual(values = trt.pal) +
+  xlab(paste("PCo1 (", es.pcoa.eig$Eigval[1], "%)", sep = "")) +
+  ylab(paste("PCo2 (", es.pcoa.eig$Eigval[2], "%)", sep = "")) +
+  theme_classic() +
+  theme(text = element_text(size = 15),
+        legend.position = "right")
+
+```
+
+
+### 探索时间序列上展示排序分析结果
+
+通过上面的分析我们发现，无法很好展示不同处理的差异，所以这里按照时间梯度进行区分，单个时间展示排序分析.
+
+通过在时间层面的拆分，我们何以很容易看到在干旱的时候造成了很大的区分，并且这一差异在后面我没有进行回复。这代表了土壤微生物形成过程的随机性，也就是干预后重新洗牌重新形成另外一种微生物群落。
+
+
+```{r}
+rs.expanded <- rs.pcoa.axes %>% 
+  ggplot(aes(Axis.1, Axis.2, color = Treatment)) +
+  geom_point() +
+  geom_convexhull(aes(fill = Treatment), alpha = 0.7) +
+  xlab(paste("PCo1 (", rs.pcoa.eig$Eigval[1], "%)", sep = "")) +
+  ylab(paste("PCo2 (", rs.pcoa.eig$Eigval[2], "%)", sep = "")) +
+  scale_color_manual(values = trt.pal) +
+  scale_fill_manual(values = trt.pal) +
+  facet_wrap(~ Age, nrow = 2) +
+  theme_bw() +
+  theme(legend.position = c(0.9,0.15),
+        text = element_text(size = 15),
+        axis.text.x = element_text(angle = 45, hjust = 1))
+
+ggsave("7.pdf",width = 12)
+
+es.expanded <- es.pcoa.axes %>% 
+  ggplot(aes(Axis.1, Axis.2, color = Treatment)) +
+  geom_point() +
+  geom_convexhull(aes(fill = Treatment), alpha = 0.7) +
+  xlab(paste("PCo1 (", es.pcoa.eig$Eigval[1], "%)", sep = "")) +
+  ylab(paste("PCo2 (", es.pcoa.eig$Eigval[2], "%)", sep = "")) +
+  scale_color_manual(values = trt.pal) +
+  scale_fill_manual(values = trt.pal) +
+  facet_wrap(~ Age, nrow = 2) +
+  theme_bw() +
+  theme(legend.position = c(0.9,0.15),
+        text = element_text(size = 15),
+        axis.text.x = element_text(angle = 45, hjust = 1))
+
+ggsave("8.pdf",width = 12)
+
+```
+
+组合一张大图
+
+```{r}
+supp.legend <- plot_grid(get_legend(all.pcoa.p), get_legend(rs.pc.time))
+
+supp.top <- plot_grid(all.pcoa.p + theme(legend.position = "none"), cmp.box + theme(legend.position = "none"), 
+                      rs.pc.time + theme(legend.position = "none"), es.pc.time + theme(legend.position = "none"),
+          nrow = 1,
+          align = "vh",
+          axis = "l",
+          rel_widths = c(3,3,3,3),
+          labels = c("A","B", "C", "D"),
+          label_size = 20)
+
+supp.bottom <- plot_grid(rs.expanded, es.expanded,
+          nrow = 2,
+          align = "vh",
+          axis = "l",
+          labels = c("E", "F"),
+          label_size = 20)
+
+plot_grid(supp.legend, supp.top, supp.bottom,
+          nrow = 3,
+          rel_heights = c(1,2,5))
+
+ggsave("9.pdf",width = 10)
+
+```
+
+
+### 基于线性混合模型对排序坐标进行回归
+
+
+```{r}
+
+# 构建混合模型函数
+run_lmm <- function(df) {
+  lmerTest::lmer(value ~ Treatment * TimeFctr + (1|Row), data = df)
+}
+
+run_anova <- function(fit) {
+  anova(fit) %>% tidy()
+}
+
+get_contrasts <- function(fit) {
+  emmeans::emmeans(fit, specs = trt.vs.ctrl ~ Treatment|TimeFctr, adjust = "none") %>% 
+    .$contrasts %>% 
+    as.data.frame() %>% 
+    separate(contrast, c("Treatment", "Control")) %>% 
+    rename("Time" = "TimeFctr") %>% 
+    mutate(Time = as.integer(Time))
+}
+
+```
+
+
+根际和根内分开进行回归
+
+```{r}
+
+rs.pcoa.lmm <- rs.pcoa.axes %>%
+  select(Axis.1:Axis.5, SampleID:TimeFctr) %>%
+  gather(key = "Axis", value = "value", Axis.1:Axis.5) %>%
+  group_by(Axis) %>%
+  nest() %>%
+  mutate(lmm = map(data, run_lmm),
+         anova = map(lmm, run_anova),
+         contrasts = map(lmm, get_contrasts))
+
+es.pcoa.lmm <- es.pcoa.axes %>%
+  select(Axis.1:Axis.5, SampleID:TimeFctr) %>%
+  gather(key = "Axis", value = "value", Axis.1:Axis.5) %>%
+  group_by(Axis) %>%
+  nest() %>%
+  mutate(lmm = map(data, run_lmm),
+         anova = map(lmm, run_anova),
+         contrasts = map(lmm, get_contrasts))
+
+```
+
+
+Make a data frame to transform time points to ages
+
+```{r}
+
+time.age <- map %>% group_by(Time, Age) %>% count() %>% select(-n)
+
+```
+
+
+### 基于排序坐标展示时间梯度的群落变化
+
+```{r}
+
+rs.means <- rs.pcoa.axes %>% 
+  group_by(Treatment, Age) %>% 
+  mutate(Mean = mean(Axis.1)) %>% 
+  ungroup()
+
+rs.pc <- rs.pcoa.axes %>% 
+  ggplot(aes(Age, Axis.1)) +
+  geom_vline(xintercept = ws.line, linetype = 3, color = "gray20", size = 0.5) +
+  geom_point(aes(color = Treatment), alpha = 1, shape = 1, size = 2) +
+  geom_point(aes(0,0), alpha = 0) +
+  geom_line(data = rs.means, aes(y = Mean, color = Treatment), size = 1) +
+  xlab("Plant age (days)") +
+  ylab(paste("Rhizopshere\nPCo1 (", rs.pcoa.eig$Eigval[1], "%)", sep = "")) +
+  scale_fill_manual(values = trt.pal) +
+  scale_color_manual(values = trt.pal) +
+  scale_x_continuous(breaks = seq(0,140,20)) +
+  theme_classic() +
+  theme(legend.position = "none",
+        text = element_text(size = 15))
+
+ggsave("10.pdf")
+
+rs.sig <- rs.pcoa.lmm %>% 
+  unnest(contrasts) %>% 
+  filter(Axis == "Axis.1") %>% 
+  ungroup() %>% 
+  mutate(p.adj = p.adjust(p.value, method = "fdr")) %>% 
+  inner_join(time.age, by = "Time") %>% 
+  ggplot(aes(Age, Treatment)) +
+  geom_point(aes(color = Treatment, alpha = p.adj < 0.05), shape = "*", size = 7) +
+  geom_point(aes(0,1), alpha = 0) +
+  scale_y_discrete(limits = c("D3", "D2", "D1")) +
+  scale_x_continuous(breaks = seq(0,140,20)) +
+  scale_color_manual(values = trt.pal[-1]) +
+  scale_alpha_manual(values = c(0,1)) +
+  theme_void() +
+  theme(legend.position = "none")
+
+rs.sig <- rs.pcoa.lmm %>% 
+  unnest(contrasts) %>% 
+  filter(Axis == "Axis.1") %>% 
+  ungroup() %>% 
+  mutate(p.adj = p.adjust(p.value, method = "fdr")) %>% 
+  inner_join(time.age, by = "Time") %>% 
+  mutate(Treatment = fct_recode(Treatment,
+                                "WC vs DS1" = "D1",
+                                "WC vs DS2" = "D2",
+                                "WC vs DS3" = "D3")) %>% 
+  ggplot(aes(Age, Treatment)) +
+  geom_line(size = 0.1, color = "gray25") +
+  geom_point(aes(color = Treatment, alpha = p.adj < 0.05), shape = "*", size = 7) +
+  geom_point(aes(0,1), alpha = 0) +
+  scale_y_discrete(limits = c("WC vs DS3", "WC vs DS2", "WC vs DS1")) +
+  scale_x_continuous(breaks = seq(0,140,20)) +
+  scale_color_manual(values = trt.pal[-1]) +
+  scale_alpha_manual(values = c(0,1)) +
+  theme(text = element_text(size = 13),
+        axis.title = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks = element_blank(),
+        panel.background = element_blank(),
+        legend.position = "none") 
+
+rs.plot <- plot_grid(rs.sig, rs.pc, ncol = 1, rel_heights = c(3,17), align = "v")
+
+rs.plot
+ggsave("11.pdf")
+
+```
+
+对根内的排序结果进行展示
+
+```{r}
+es.means <- es.pcoa.axes %>% 
+  group_by(Treatment, Age) %>% 
+  mutate(Mean = mean(Axis.1)) %>% 
+  ungroup()
+
+es.pc <- es.pcoa.axes %>%  
+  ggplot(aes(Age, Axis.1)) +
+  geom_vline(xintercept = ws.line, linetype = 3, color = "gray20", size = 0.5) +
+  geom_point(aes(color = Treatment), shape = 1, size = 2, alpha = 1) +
+  geom_point(aes(0,0), alpha = 0) +
+  geom_line(data = es.means, aes(y = Mean, color = Treatment), size = 1) +
+  xlab("Plant age (days)") +
+  ylab(paste("Endosphere\nPCo1 (", es.pcoa.eig$Eigval[1], "%)", sep = "")) +
+  scale_fill_manual(values = trt.pal) +
+  scale_color_manual(values = trt.pal) +
+  scale_x_continuous(breaks = seq(0,140,20)) +
+  theme_classic() +
+  theme(legend.position = "none",
+        text = element_text(size = 15))
+
+
+es.sig <- es.pcoa.lmm %>% 
+  unnest(contrasts) %>% 
+  filter(Axis == "Axis.1") %>% 
+  ungroup() %>% 
+  mutate(p.adj = p.adjust(p.value, method = "fdr")) %>% 
+  inner_join(time.age, by = "Time") %>% 
+  ggplot(aes(Age, Treatment)) +
+  geom_point(aes(color = Treatment, alpha = p.adj < 0.05), shape = "*", size = 7) +
+  geom_point(aes(0,1), alpha = 0) +
+  scale_y_discrete(limits = c("D3", "D2", "D1")) +
+  scale_x_continuous(breaks = seq(0,140,20)) +
+  scale_color_manual(values = trt.pal[-1]) +
+  scale_alpha_manual(values = c(0,1)) +
+  theme_void() +
+  theme(legend.position = "none")
+
+es.sig <- es.pcoa.lmm %>% 
+  unnest(contrasts) %>% 
+  filter(Axis == "Axis.1") %>% 
+  ungroup() %>% 
+  mutate(p.adj = p.adjust(p.value, method = "fdr")) %>% 
+  inner_join(time.age, by = "Time") %>% 
+  mutate(Treatment = fct_recode(Treatment,
+                                "WC vs DS1" = "D1",
+                                "WC vs DS2" = "D2",
+                                "WC vs DS3" = "D3")) %>% 
+  ggplot(aes(Age, Treatment)) +
+  geom_line(size = 0.1, color = "gray25") +
+  geom_point(aes(color = Treatment, alpha = p.adj < 0.05), shape = "*", size = 7) +
+  geom_point(aes(0,1), alpha = 0) +
+  scale_y_discrete(limits = c("WC vs DS3", "WC vs DS2", "WC vs DS1")) +
+  scale_x_continuous(breaks = seq(0,140,20)) +
+  scale_color_manual(values = trt.pal[-1]) +
+  scale_alpha_manual(values = c(0,1)) +
+  theme(text = element_text(size = 13),
+        axis.title = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks = element_blank(),
+        panel.background = element_blank(),
+        legend.position = "none") 
+
+es.plot <- plot_grid(es.sig, es.pc, ncol = 1, rel_heights = c(3,17), align = "v")
+
+es.plot
+
+ggsave("12.pdf")
+
+```
+
+Format data frame to test effect of drought on soil moisture
+
+```{r}
+
+soil <- map %>% 
+  filter(Treatment2 != "WC_TRN") %>% 
+  filter(Compartment == "RS") %>% 
+  mutate(TimeFctr = as.factor(Time))
+```
+
+### 线性混合模型拟合水分和时间和区域的关系
+
+```{r}
+head(soil)
+
+soil.lmm <- lmerTest::lmer(PercentMoisture ~ Treatment * TimeFctr + (1|Row), data = soil)
+
+soil.aov <- anova(soil.lmm) %>% 
+  tidy()
+
+soil.contrasts <- emmeans::emmeans(soil.lmm, specs = trt.vs.ctrl ~ Treatment|TimeFctr, adjust = "none") %>% 
+  .$contrasts %>% 
+  as.data.frame() %>% 
+  separate(contrast, c("Treatment", "Control")) %>% 
+  rename("Time" = "TimeFctr") %>% 
+  mutate(Time = as.integer(Time))
+
+```
+
+展示结果
+
+```{r}
+soil.means <- map %>% 
+  group_by(Age, Treatment, WaterStatus) %>% 
+  summarise(MeanPM = mean(PercentMoisture))
+
+soil.p <- soil %>% 
+  ggplot(aes(Age, PercentMoisture)) +
+  geom_vline(xintercept = ws.line, linetype = 3, color = "gray20", size = 0.5) +
+  geom_point(aes(color = Treatment), shape = 1, size = 2, alpha = 1) +
+  geom_point(aes(0,20), alpha = 0) +
+  geom_line(data = soil.means, aes(Age, MeanPM, color = Treatment), size= 1) +
+  scale_color_manual(values = trt.pal) +
+  scale_x_continuous(breaks = seq(0,140,20)) +
+  scale_shape_manual(values = ws.shp) +
+  ylab("Soil moisture\n(% weight)") +
+  xlab("Plant age (days)") +
+  theme_classic() +
+  theme(legend.position = "none",
+        text = element_text(size = 15))
+
+
+soil.p
+
+sig.p <- soil.contrasts %>% 
+  ungroup() %>% 
+  mutate(p.adj = p.adjust(p.value, method = "fdr")) %>% 
+  inner_join(time.age, by = "Time") %>% 
+  ggplot(aes(Age, Treatment)) +
+  geom_point(aes(color = Treatment, alpha = p.adj < 0.05), shape = "*", size = 7) +
+  geom_point(aes(0,1), alpha = 0) +
+  scale_y_discrete(limits = c("D3", "D2", "D1")) +
+  scale_x_continuous(breaks = seq(0,140,20)) +
+  scale_color_manual(values = trt.pal[-1]) +
+  scale_alpha_manual(values = c(0,1)) +
+  xlab("Plant age (days)") +
+  #xlim(0,NA) +
+  theme_void() +
+  theme(legend.position = "none") 
+
+sig.p <- soil.contrasts %>% 
+  ungroup() %>% 
+  mutate(p.adj = p.adjust(p.value, method = "fdr")) %>% 
+  inner_join(time.age, by = "Time") %>% 
+  mutate(Treatment = fct_recode(Treatment,
+                                "WC vs DS1" = "D1",
+                                "WC vs DS2" = "D2",
+                                "WC vs DS3" = "D3")) %>% 
+  ggplot(aes(Age, Treatment)) +
+  geom_line(size = 0.1, color = "gray25") +
+  geom_point(aes(color = Treatment, alpha = p.adj < 0.05), shape = "*", size = 7) +
+  geom_point(aes(0,1), alpha = 0) +
+  scale_y_discrete(limits = c("WC vs DS3", "WC vs DS2", "WC vs DS1")) +
+  scale_x_continuous(breaks = seq(0,140,20)) +
+  scale_color_manual(values = trt.pal[-1]) +
+  scale_alpha_manual(values = c(0,1)) +
+  theme(text = element_text(size = 13),
+        axis.title = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks = element_blank(),
+        panel.background = element_blank(),
+        legend.position = "none") 
+
+sig.p
+
+soil.plot <- plot_grid(sig.p, soil.p, ncol = 1, rel_heights = c(3,17), align = "v")
+soil.plot
+
+# ggsave("13.pdf")
+
+```
+
+
+对照（WC）和干旱胁迫（DS1，DS2和DS3）植物遵循的浇水安排的时间表。
+
+
+```{r}
+
+xpt.ds <-  map %>% 
+  mutate(Treatment = case_when(Treatment == "WC" ~ "WC",
+                                    Treatment == "D1" ~ "DS1",
+                                    Treatment == "D2" ~ "DS2",
+                                    Treatment == "D3" ~ "DS3")) %>% 
+  mutate(Treatment = fct_relevel(Treatment, "WC")) 
+
+xpt.p <- xpt.ds %>% 
+  filter(WaterStatus != "S") %>% 
+  ggplot(aes(PrevAge, Treatment)) +
+  geom_segment(aes(xend = Age, yend = Treatment, color = Treatment), size = 3, linetype = 1) +
+  geom_segment(data = filter(xpt.ds, WaterStatus == "S"), aes( xend = Age, yend = Treatment, color = Treatment), linetype = 2) +
+  geom_point(aes(Age, 4.5), shape = 6, size = 2) +
+  geom_vline(xintercept = ws.line, linetype = 3, color = "gray20", size = 0.5) +
+  xlab("Plant age (days)") +
+  scale_color_manual(values = trt.pal) +
+  scale_y_discrete(limits = c("DS3", "DS2", "DS1", "WC")) +
+  scale_x_continuous(breaks = seq(0,140,20),
+                     position = "bottom") +
+  scale_linetype_manual(values = c(1,3)) +
+  theme_classic() +
+  theme(text = element_text(size = 15),
+        axis.line.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        panel.grid = element_blank(),
+        legend.position = "none")
+
+
+xpt.p
+
+```
+
+Put it all together.
+
+```{r}
+#386:1073
+
+plot_grid(xpt.p,
+          sig.p, soil.p, 
+          rs.sig, rs.pc, 
+          es.sig,es.pc,
+          ncol = 1,
+          align = "v",
+          rel_heights = c(10,
+                          4,17,
+                          4,17,
+                          4,17),
+          labels = c("A", "B", NA, "C", NA, "D", NA),
+          label_size = 20)
+ggsave("14.pdf",width = 12,height = 12)
+
+```
+
+
+生成温室中盆栽的摆放示意图
+
+```{r}
+
+whole.map <- readRDS("./Data/drought_map.RDS")
+
+tubs.p <- whole.map %>% 
+  mutate(Treatment = str_replace(Treatment, "D", "DS")) %>% 
+  mutate(Treatment = fct_relevel(Treatment, "WC")) %>% 
+  mutate(Treatment2 = str_replace(Treatment2, "D", "DS")) %>% 
+  group_by(Column, Row, Treatment, Treatment2) %>%
+  count() %>% 
+  ggplot(aes(Column, Row, fill = Treatment)) +
+  geom_tile(color = "white", size = 2) +
+  geom_text(aes(label = Treatment2), color = "white", size = 5) +
+  scale_fill_manual(values = trt.pal) +
+  theme_bw() +
+  theme(axis.text = element_blank(),
+        axis.title = element_blank(),
+        text = element_text(size = 20),
+        panel.border = element_blank(),
+        panel.grid = element_blank(),
+        axis.ticks = element_blank())
+
+tubs.p
+```
+
+保存一些表格
+
+```{r}
+
+rs.anova <- rs.pcoa.lmm %>% 
+  unnest(anova) %>% 
+  filter(Axis == "Axis.1") %>% 
+  ungroup() %>% 
+  select(term:p.value)
+
+es.anova <- es.pcoa.lmm %>% 
+  unnest(anova) %>% 
+  filter(Axis == "Axis.1") %>% 
+  ungroup() %>% 
+  select(term:p.value)
+
+soil.aov
+
+rs.contrasts <- rs.pcoa.lmm %>% 
+  unnest(contrasts) %>% 
+  filter(Axis == "Axis.1") %>% 
+  select(Treatment:p.value) %>% 
+  ungroup() %>% 
+  mutate(p.adj = p.adjust(p.value, method = "fdr")) %>% 
+  mutate(Contrast = paste(Treatment, Control, sep = "-")) %>% 
+  select(Contrast, Time:p.adj)
+
+es.contrasts <-  es.pcoa.lmm %>% 
+  unnest(contrasts) %>% 
+  filter(Axis == "Axis.1") %>% 
+  select(Treatment:p.value) %>% 
+  ungroup() %>% 
+  mutate(p.adj = p.adjust(p.value, method = "fdr")) %>% 
+  mutate(Contrast = paste(Treatment, Control, sep = "-")) %>% 
+  select(Contrast, Time:p.adj)
+
+soil.contrasts <- soil.contrasts %>% ungroup() %>% 
+  mutate(p.adj = p.adjust(p.value, method = "fdr")) %>% 
+  mutate(Contrast = paste(Treatment, Control, sep = "-")) %>% 
+  select(Contrast, Time:p.adj)
+
+# write.table(rs.anova, "../Tables/rs_pcoa_anova.tsv", quote = F, row.names = F, sep = "\t")
+# write.table(es.anova, "../Tables/es_pcoa_anova.tsv", quote = F, row.names = F, sep = "\t")
+# write.table(soil.aov, "../Tables/soil_anova.tsv", quote = F, row.names = F, sep = "\t")
+# write.table(rs.contrasts, "../Tables/rs_pcoa_cntr.tsv", quote = F, row.names = F, sep = "\t")
+# write.table(es.contrasts, "../Tables/es_pcoa_cntr.tsv", quote = F, row.names = F, sep = "\t")
+# write.table(soil.contrasts, "../Tables/soil_cntr.tsv", quote = F, row.names = F, sep = "\t")
+```
+

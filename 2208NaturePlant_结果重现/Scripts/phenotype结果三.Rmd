@@ -1,0 +1,317 @@
+---
+title: "R Notebook"
+output: html_notebook
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+source("./General/rmb_functions.R")
+library(emmeans)
+library(cowplot)
+library(tidyverse)
+```
+
+```{r}
+
+phenotypes <- readRDS("./Data/phenotypes.RDS")
+iso.otu <- readRDS("./Data/pheno_otu.RDS")
+iso.map <- readRDS("./Data/pheno_map.RDS")
+tax <- readRDS("./Data/tax.RDS") %>% 
+  classify_organelle()
+iso.pal <- wesanderson::wes_palette(name = "Zissou1", n = 5, type = "discrete")[c(1,3,5)]
+trt.colors <- RColorBrewer::brewer.pal(11, "BrBG")[c(10,3)]
+```
+
+
+### 验证实验设计
+
+```{r}
+
+diagram.df <- data.frame(Isolate = c(rep("Mock control",6),rep("Streptomyces sp. SLBN-177",6),rep("Microbacterium sp. SLBN-111",6)),
+          Treatment = rep(c(rep("WC",3),rep("DS",3)),3),
+          PrevAge= rep(c(0,10,24),6),
+          Age=rep(c(10,24,31),6),
+          WaterStatus = rep(c("W","W","W","W","S","W"),3),
+          Tube = rep(c("Closed", "Open", "Open"),3)) %>% 
+  mutate(Isolate = fct_relevel(Isolate, "Mock control"),
+         Treatment = fct_relevel(Treatment, "WC"))
+xpt.iso.p <- diagram.df %>% 
+  filter(WaterStatus != "S") %>% 
+  ggplot(aes(PrevAge, Isolate)) +
+  geom_rect(data = diagram.df, aes(xmin = PrevAge, xmax = Age, ymin = 0.5, ymax = 3.5, fill = Tube)) +
+  geom_segment(aes(xend = Age, yend = Isolate, color = Isolate), size = 3, linetype = 1) +
+  geom_segment(data = filter(diagram.df, WaterStatus == "S"), aes(xend = Age, yend = Isolate, color = Isolate), linetype = 2) +
+  scale_color_manual(values = iso.pal, 
+                     guide = F) +
+  scale_fill_manual(name = "Growth\nsystem",
+                    values = c("gray75", "gray25")) +
+  scale_y_discrete(limits = c("Streptomyces sp. SLBN-177", "Microbacterium sp. SLBN-111", "Mock control"),
+                   labels = c(expression(paste(italic("Streptomyces "), "sp. SLBN-177", sep = "")),
+                              expression(paste(italic("Microbacterium "), "sp. SLBN-111", sep = "")),
+                              "Mock control")) +
+  scale_x_continuous(breaks = seq(0,31,10),
+                     position = "bottom") +
+  facet_grid(Treatment ~ .) +
+  theme_classic() +
+  xlab("Plant age (days)") +
+  theme(text = element_text(size = 12),
+        axis.line.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.title.y = element_blank(),
+        legend.position = "right")
+xpt.iso.p
+ggsave("./6.pdf")
+
+```
+
+
+### 验证实验表型排序分析
+
+```{r}
+phenotype.mtx <- phenotypes %>%
+  mutate(key = paste(isolate,trt,tray,row,col,sep=".")) %>%
+  select(key,shoot_len,mass_root_length,shoot_wt,root_wt,n_leaves,n_roots) %>%
+  column_to_rownames(.,var = "key") %>%
+  na.omit() %>%
+  as.matrix()
+pca <- prcomp(phenotype.mtx,center = TRUE, scale. = TRUE)
+str(pca)
+summary(pca)
+pca.out <- as.data.frame(pca$x) %>%
+  add_rownames("key")
+pca.rotation <- as.data.frame(pca$rotation) %>%
+  add_rownames("trait") %>%
+  mutate(trait = case_when(trait=="shoot_len" ~ "Shoot length",
+                           trait=="mass_root_length" ~ "Root length",
+                           trait=="shoot_wt" ~ "Shoot weight",
+                           trait=="root_wt" ~ "Root weight",
+                           trait=="n_leaves" ~ "# Leaves",
+                           trait=="n_roots" ~ "# Roots")) %>%
+  mutate(PC1.1=PC1-.025)
+map.pca <- phenotypes %>%
+  mutate(key = paste(isolate,trt,tray,row,col,sep=".")) %>%
+  select(isolate,trt,tray,row,col,key) %>%
+  inner_join(pca.out,by="key")
+iso.pca.p <- map.pca %>% 
+  mutate(isolate = fct_recode(isolate,
+                          "Mock Ctrl" = "ctr",
+                          "SLBN-177" = "177",
+                          "SLBN-111" = "111")) %>% 
+  mutate(isolate = fct_relevel(isolate, "Mock Ctrl", "SLBN-111")) %>% 
+  ggplot()+
+  geom_point(aes(x=PC1,y=PC2,color=isolate,shape=trt),size=2)+
+  geom_label(data=pca.rotation, aes(x=PC1.1*3, y=PC2*3, label=trait), size = 4, hjust=1, alpha = 0.5)+
+  geom_segment(data=pca.rotation,aes(x=0, y=0, xend=PC1*3, yend=PC2*3),arrow=arrow(length=unit(.25,"picas")))+
+  scale_color_manual(name = "Microbial\ntreatment", values = iso.pal)+
+  scale_shape_manual(name = "Watering\ntreatment", values = c(16,1))+
+  guides(color = guide_legend(nrow = 3),
+         shape = guide_legend(nrow = 2)) +
+  theme_bw()+
+  labs(x="PC1 (58.68%)",y="PC2 (15.14%)")+
+  theme_classic() +
+  theme(text = element_text(size = 12),
+        legend.position = "bottom")
+iso.pca.p
+
+ggsave("./7.pdf")
+
+```
+
+### 基于混合线性模型差异统计分析
+
+
+```{r}
+
+mrl.model <- lmerTest::lmer(mass_root_length ~ (1|tray) + isolate * trt, phenotypes)
+sl.model <- lmerTest::lmer(shoot_len ~ (1|tray) + isolate * trt, phenotypes)
+sw.model <- lmerTest::lmer(shoot_wt ~ (1|tray) + isolate * trt, phenotypes)
+rw.model <- lmerTest::lmer(root_wt ~ (1|tray) + isolate * trt, phenotypes)
+nr.model <- lmerTest::lmer(n_roots ~ (1|tray) + isolate * trt, phenotypes)
+anova.res <- rbind(anova(mrl.model) %>% as.data.frame() %>% add_rownames("term") %>% mutate(phenotype="Root Length"),
+                   anova(sl.model) %>% as.data.frame() %>% add_rownames("term") %>% mutate(phenotype="Shoot Length"),
+                   anova(rw.model) %>% as.data.frame() %>% add_rownames("term") %>% mutate(phenotype="Root Weight"), 
+                   anova(sw.model) %>% as.data.frame() %>% add_rownames("term") %>% mutate(phenotype="Shoot Weight"),
+                   anova(nr.model) %>% as.data.frame() %>% add_rownames("term") %>% mutate(phenotype="# Roots")) %>%
+  select(phenotype,term:`Pr(>F)`) %>%
+  mutate(p.adjusted=p.adjust(`Pr(>F)`))
+anova.res
+
+write.table(anova.res, "./Tables/pheno_anova.tsv", sep = "\t", quote = F, row.names = F)
+
+```
+
+### 验证实验根长分析
+
+```{r}
+#newly added block
+mrl.contrasts <- phenotypes %>%
+  mutate(group=paste(isolate,trt,sep=".")) %>%
+  rstatix::games_howell_test(mass_root_length ~ group)
+
+
+p.values <- as.vector(mrl.contrasts$p.adj)
+names(p.values) <- paste(mrl.contrasts$group1,mrl.contrasts$group2,sep="-")
+multcompView::multcompLetters(p.values)
+#The letters here are arbitrary (don't take group mean into account), so I switched 'b' and 'c' to conform with the means in the dataset below
+```
+
+
+```{r}
+
+group.letters <- data.frame(isolate=c("Mock ctrl","Mock ctrl","SLBN-177","SLBN-177","SLBN-111","SLBN-111"),
+          trt=rep(c("WC","DS"),3),
+          position=rep(17,6),
+          group.lets=c("ab","a","c","bc","a","a"))
+root.length.p <- phenotypes %>%
+  mutate(isolate = fct_recode(isolate,
+                          "Mock ctrl" = "ctr",
+                          "SLBN-177" = "177",
+                          "SLBN-111" = "111")) %>%
+  mutate(isolate = fct_relevel(isolate, "Mock ctrl", "SLBN-111")) %>% 
+  ggplot(aes(x=trt,y=mass_root_length, color = trt)) +
+  geom_boxplot(size = 1) +
+  geom_jitter(aes(shape = trt), width = .25, size = 2, alpha=1) +
+  geom_text(data = group.letters, aes(y = position, label = group.lets), size = 5,color = "black") +
+  facet_grid(. ~ isolate) +
+  scale_color_manual(name = "Watering\ntreatment", values = trt.colors) +
+  scale_shape_manual(name = "Watering\ntreatment", values = c(16,1))+
+  guides(color = guide_legend(nrow = 2)) +
+  xlab("") +
+  ylab("Root length (cm)") +
+  theme_classic() +
+  theme(text = element_text(size = 12),
+        legend.position = "bottom")
+root.length.p
+ggsave("./8.pdf")
+
+```
+
+### 组图
+
+```{r}
+bottom <- plot_grid(iso.pca.p, 
+                    root.length.p, 
+                    ncol = 2,
+                    align = "h",
+                    axis = "b",
+                    rel_widths = c(3,3),
+                    labels = c("B","C"),
+                    label_size = 20)
+bottom
+plot_grid(xpt.iso.p, bottom, 
+          nrow = 2,
+          rel_heights = c(1,2),
+          labels = "A",
+          label_size = 20)
+
+ggsave("./9.pdf")
+```
+
+### 其他几种指标差异
+
+```{r}
+pheno.box <- phenotypes %>%
+  select(tray,row,col,isolate,trt,shoot_len,shoot_wt,root_wt,n_roots) %>%
+  gather("measurement","value",shoot_len:n_roots) %>%
+  mutate(measurement = case_when(measurement == "shoot_len" ~ "Shoot Length (cm)",
+                                 measurement == "shoot_wt" ~"Shoot Weight (g)",
+                                 measurement == "root_wt" ~"Root Weight (g)",
+                                 measurement == "n_roots" ~ "# Roots")) %>%
+  mutate(isolate = fct_recode(isolate,
+                          "Mock Ctrl" = "ctr",
+                          "SLBN-177" = "177",
+                          "SLBN-111" = "111")) %>% 
+  mutate(isolate = fct_relevel(isolate, "Mock Ctrl", "SLBN-111")) %>% 
+  ggplot(.,aes(x=isolate,y=value,color=trt)) +
+  geom_boxplot(size = 1) +
+  facet_wrap(~measurement,nrow=1,scales="free")+
+  theme_minimal()+
+  scale_color_manual(name = "Watering\nTreatment", values = trt.colors)+
+  xlab("Microbial Treatment") +
+  ylab("Value") +
+  theme_classic() +
+  theme(text = element_text(size = 15),
+        axis.text.x = element_text(angle = 45, hjust = 1))
+pheno.box
+
+ggsave("./10.pdf")
+
+```
+
+### 叶片数量统计分析
+
+```{r}
+
+phenotypes %>%
+  select(tray,row,col,isolate,trt,n_leaves) %>%
+   mutate(isolate = fct_recode(isolate,
+                          "Mock Ctrl" = "ctr",
+                          "SLBN-177" = "177",
+                          "SLBN-111" = "111")) %>% 
+  mutate(isolate = fct_relevel(isolate, "Mock Ctrl", "SLBN-111")) %>% 
+  ggplot(aes(x=isolate, fill= as.character(n_leaves))) +
+  geom_bar(position = "fill") +
+  scale_fill_brewer(name = "# Leaves", palette = "Greens")+
+  xlab("Microbial Treatment") +
+  ylab("Proportion of Samples") +
+  facet_grid(. ~trt)+
+  theme_classic() +
+  theme(text = element_text(size = 15),
+        axis.text.x = element_text(angle = 45, hjust = 1))
+ggsave("./11.pdf")
+```
+
+### 进一步验证目标微生物丰度
+
+
+```{r}
+
+colonization.p <- iso.otu %>% 
+  rel_ab() %>% 
+  tidy_otu() %>% 
+  left_join(tax, by = "OTU_ID") %>% 
+  mutate(Type = case_when(Assignment != "Microbial" ~ "Organelle",
+                          OTU_ID == "1108350" ~ "OTU 1108350\n(SLBN-111)",
+                          OTU_ID == "1037355" ~ "OTU 1037355\n(SLBN-177)",
+                          TRUE ~ "Other OTU")) %>% 
+  mutate(Type = fct_relevel(Type, "OTU 1037355\n(SLBN-177)", after = Inf)) %>% 
+  group_by(SampleID, Type) %>% 
+  summarise(TotAb = sum(Count)) %>% 
+  ungroup() %>% 
+  inner_join(iso.map, by = "SampleID") %>% 
+  mutate(isolate = fct_recode(isolate,
+                          "Mock Ctrl" = "ctr",
+                          "SLBN-177" = "177",
+                          "SLBN-111" = "111")) %>%
+  mutate(isolate = fct_relevel(isolate, "Mock Ctrl", "SLBN-111"),
+         trt = fct_relevel(trt, "WC")) %>% 
+  ggplot(aes(SampleID, TotAb, fill = Type)) +
+  geom_bar(stat = "identity", position = "fill") +
+  scale_fill_manual(values = c("gray25", "gray75", iso.pal[c(2,3)])) +
+  xlab("Sample") +
+  ylab("Relative Abundance") +
+  facet_grid(. ~ isolate + trt, scales = "free") +
+  theme_classic() +
+  theme(text = element_text(size = 15),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        legend.position = "right")
+colonization.p
+
+ggsave("./12.pdf")
+```
+
+### 组图
+
+```{r}
+plot_grid(pheno.box, colonization.p, 
+          nrow = 2,
+          align = "v",
+          axis = "lr",
+          labels = c("A", "B"),
+          label_size = 20)
+
+ggsave("./13.pdf")
+
+```

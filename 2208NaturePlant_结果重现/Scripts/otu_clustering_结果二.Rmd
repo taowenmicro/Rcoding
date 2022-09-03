@@ -1,0 +1,703 @@
+---
+title: "OTU Clustering"
+output: html_notebook
+editor_options: 
+  chunk_output_type: console
+---
+
+Load libraries
+
+```{r}
+source("./General/rmb_functions.R")
+source("./General/parameters.R")
+library(factoextra)
+library(cluster)
+library(ggtree)
+library(cowplot)
+library(tidyverse)
+```
+
+
+Load data
+
+
+```{r}
+otu <- readRDS("./Data/otu_pers.RDS")
+map <- readRDS("./Data/drought_map.RDS")
+rs.fc <- readRDS("./Data/rs_shlfc.RDS")
+es.fc <- readRDS("./Data/es_shlfc.RDS")
+tax <- readRDS("./Data/tax.RDS") %>% 
+  mutate(PhyClass2 = fct_recode(PhyClass2, "Low abundance" = "other"))
+```
+
+
+
+Remove RF training set from mapping file. Subset mapping files for each compartment
+去除机器学习训练样本。
+
+```{r}
+map <- filter(map, Treatment2 != "WC_TRN")
+rs.map <- filter(map, Compartment == "RS")
+es.map <- filter(map, Compartment == "ES")
+```
+
+Get the relative abundances, reformat, and subset
+
+```{r}
+#--相对丰度转化
+otu <- rel_ab(otu)
+# 转化为长数据-根际数据
+rs.otu.tidy <- tidy_otu(otu) %>% 
+  mutate(Count = Count/100) %>% 
+  filter(SampleID %in% rs.map$SampleID) %>% 
+  filter(!is.na(Count)) 
+#-数据变长-根内数据
+es.otu.tidy <- tidy_otu(otu) %>% 
+  mutate(Count = Count/100) %>% 
+  filter(SampleID %in% es.map$SampleID) %>% 
+  filter(!is.na(Count)) 
+```
+
+Get significant OTUs for each set
+
+```{r}
+
+#--基于desep2的差异微生物数据取子集
+rs.sig <- rs.fc %>% 
+  select(-Day) %>% 
+  separate(Contrast, c("Treatment", "Time"), sep = "\\.") %>% 
+  filter(Treatment != "WC_TRN") %>% 
+  filter(!is.na(p.adjusted)) %>% 
+  ungroup() %>% 
+  mutate(p.adjusted2 = p.adjust(p.value, method = "fdr")) %>%
+  ungroup() %>% 
+  filter(p.adjusted2 < 0.05)
+
+es.sig <- es.fc %>% 
+  select(-Day) %>% 
+  separate(Contrast, c("Treatment", "Time"), sep = "\\.") %>% 
+  filter(Treatment != "WC_TRN") %>% 
+  filter(!is.na(p.adjusted)) %>% 
+  ungroup() %>% 
+  mutate(p.adjusted2 = p.adjust(p.value, method = "fdr")) %>%
+  ungroup() %>% 
+  filter(p.adjusted2 < 0.05)
+
+```
+
+For visualization purposes, generate a data frame with the range of drought stress time points for each treatment 
+出于可视化目的，生成一个数据框，其中包含每个处理的干旱胁迫时间点范围
+
+```{r}
+trt.lines <- data.frame(Treatment = c("DS1", "DS2", "DS3"),
+                        Treatment2 = c("DS1", "DS2", "DS3"),
+                        Contrast = c("WC vs DS1", "WC vs DS2", "WC vs DS3"),
+                        IniTreatment = c(4.5, 4.5, 4.5),
+                        EndTreatment = c(5.5, 6.5, 7.5))
+```
+
+### 评估这些差异显著的OTU对处理和时间的贡献
+Evaluate the distribution of significant OTUs across treatments and collection time points. 
+
+首先我们查看一下不同处理之间差异微生物的数量。发现再干旱期间确实差异数量是最多的。
+
+```{r}
+all.sig <- rbind(mutate(rs.sig, Compartment = "RS"),
+                 mutate(es.sig, Compartment = "ES"))
+head(all.sig)
+dao.p <- all.sig %>% 
+  mutate(Contrast = case_when(Treatment == "D1" ~ "WC vs DS1",
+                              Treatment == "D2" ~ "WC vs DS2",
+                              Treatment == "D3" ~ "WC vs DS3")) %>% 
+  mutate(Compartment = ifelse(Compartment == "RS", "Rhizosphere", "Endosphere")) %>% 
+  mutate(Compartment = fct_relevel(Compartment, "Rhizosphere")) %>% 
+  ggplot(aes(as.numeric(Time) * 10)) +
+  geom_bar() +
+  geom_vline(data = trt.lines, aes(xintercept = IniTreatment * 10), linetype = 3) +
+  geom_vline(data = trt.lines, aes(xintercept = EndTreatment * 10), linetype = 3) +
+  scale_fill_manual(values = resp.pal) +
+  xlab("Plant age (days)") +
+  ylab("Number of OTUs") +
+  facet_grid(. ~ Compartment + Contrast) +
+  theme_classic() +
+  theme(text = element_text(size = 12))
+
+dao.p
+ggsave("1.pdf",width = 10)
+
+```
+
+
+Generate supplementary table with all differentially abundant OTUs. 
+绘图结果保存为附件，方便发文章使用。
+
+```{r}
+# 这里注意count在plyr和aplyr中都有，要指定dplyr。
+time.age <- map %>% 
+  group_by(Time, Age) %>% 
+  dplyr::count() %>% 
+  ungroup() %>% 
+  select(-n)
+
+dao.supp <- all.sig %>% 
+  mutate(Time = as.integer(Time)) %>% 
+  mutate(Contrast = paste("WC_vs_", Treatment, sep = "")) %>% 
+  select(-Treatment) %>% 
+  inner_join(time.age, by = "Time") %>% 
+  select(Compartment, Contrast, Time, Age, everything()) %>% 
+  select(-p.adjusted) %>% 
+  dplyr::rename("p.adjusted" = "p.adjusted2") 
+
+write.table(dao.supp, "./Tables/dao_updated.tsv", sep = "\t", quote = F, row.names = F)
+
+```
+
+### 聚类分析
+
+Define the clustering methods to test
+定义要测试的聚类方法
+
+```{r}
+m <- c( "average", "single", "complete", "ward")
+names(m) <- c( "average", "single", "complete", "ward")
+```
+
+
+RHIZOSPHERE
+z-transform relative abundances; calculate the mean z-score for each treatment, and time point combination; generate a matrix for hierarchical clustering
+
+
+```{r}
+
+rs.zs.tidy <- rs.otu.tidy %>%
+  inner_join(map, by = "SampleID") %>%
+  filter(OTU_ID %in% rs.sig$OTU_ID) %>%
+  group_by(OTU_ID) %>%
+  mutate(zscore = (Count - mean(Count))/sd(Count)) %>%
+  group_by(Treatment, Time, OTU_ID, Age) %>%
+  summarise(MeanZS = mean(zscore)) %>%
+  ungroup()
+
+rs.fc.mtx <- rs.fc %>% 
+  separate(Contrast, c("Treatment2", "Time"), sep = "\\.") %>% 
+  mutate(Treatment = Treatment2) %>% 
+  filter(Treatment2 != "WC_TRN") %>% 
+  filter(OTU_ID %in% rs.sig$OTU_ID) %>% 
+  mutate(Contrast = paste(Treatment2, Time, sep = ".")) %>% 
+  select(Contrast, OTU_ID, estimate) %>% 
+  spread(key = Contrast, value = estimate)
+rs.fc.mtx <- as.data.frame(rs.fc.mtx) 
+rownames(rs.fc.mtx) <- rs.fc.mtx$OTU_ID 
+rs.fc.mtx <- rs.fc.mtx[,-1] 
+
+```
+
+
+### 选择合适的聚类k
+
+选择一个合适的聚类方法并且定一个聚类数量。基于不同聚类过程中使用的相似性算法和模块划分参数，选择一个最合适的数目。在K-means，PAM和层次聚类中选择合适的聚类数目，这些方法包括直接方法和统计检验方法。 1.直接方法 设置一些适合的划分标准，比如elbow和average silhouette法 2.统计检验方法 就是常用的假设检验方法，比如gap statistic。
+
+在聚类分割算法中，比如K-means聚类，为了确定不同的分类，需要保证每个类分组总变异量之和最小； 具体过程如下
+
+1.对不同的k值，分别进行聚类。如K-means中k可以取从1到10
+
+2.对每个k值，计算每个组的组内平方各（within-cluster sum of square）的和
+
+3.绘制k值和组内平方和的总和的趋势图 4.从图上的转折点确定最佳分组数目
+
+
+可以看出在k=3这个点上，曲线的变化率比较大，建议选择k=3或者4作为最终的结果。当然你还可以看到k越大，组内平方和总和是越来越小，不过随着k变大，分类结果也更加分散，可能不能很好的表现数据聚类想要表达的信息。
+
+```{r}
+# See what values of k might be worth testing
+fviz_nbclust(rs.fc.mtx, FUN = hcut, method = "wss")
+ggsave("2.pdf")
+# See which method gets you the best clustering
+rs.ac <- function(x) {
+  agnes(rs.fc.mtx, method = x)$ac
+}
+map_dbl(m, rs.ac)
+```
+
+### 选择合适的k聚类
+
+
+```{r}
+rs.k <- 4
+#-就算微生物矩阵
+rs.dist <- dist(as.matrix(rs.fc.mtx)) 
+rs.clust <- hclust(rs.dist, method = "ward.D") 
+rs.ord.names <- rs.clust$labels[rs.clust$order] 
+rs.ord <- data.frame(OTU_ID = rs.ord.names, order = 1:length(rs.ord.names))
+
+rs.cut <- cutree(rs.clust[c(1,2,4)], k = rs.k)
+rs.ord$Cluster <- as.factor(rs.cut[rs.ord$OTU_ID])
+
+rs.ord <- rs.ord %>% 
+  mutate(Cluster = paste("C", Cluster, sep = "")) %>% 
+  group_by(Cluster) %>% 
+  mutate(nOTU = n()) %>% 
+  ungroup() %>% 
+  mutate(Cluster2 = paste(Cluster, " (", nOTU, " OTUs)", sep = ""))
+
+```
+
+### 热图展示聚类结果
+
+```{r}
+### with relative abundances
+
+rs.hm.p <- rs.zs.tidy %>%
+  inner_join(rs.ord, by = "OTU_ID") %>%
+  mutate(Treatment = str_replace(Treatment, "D", "DS")) %>%
+  mutate(Treatment = fct_relevel(Treatment, "WC")) %>%
+  ggplot(aes(Time*10, reorder(OTU_ID, order), fill = MeanZS)) +
+  geom_tile() +
+  geom_vline(data = trt.lines, aes(xintercept = IniTreatment*10), linetype = 3, color = "white") +
+  geom_vline(data = trt.lines, aes(xintercept = EndTreatment*10), linetype = 3, color = "white") +
+  scale_fill_viridis_c(name = "Mean Rel. Abund.\n(z-score)") +
+  ylab("Differentially Abundant OTU") +
+  xlab("Plant Age (days)") +
+  facet_grid(Cluster ~ Treatment, scales = "free", space = "free") +
+  theme_classic() +
+  theme(text = element_text(size = 15),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.line.y = element_blank(),
+        legend.position = "bottom",
+        legend.title.align = 1)
+
+rs.hm.p
+ggsave("3.pdf")
+#### with log fold changes. 
+
+rs.fc %>% 
+  separate(Contrast, c("Treatment2", "Time"), sep = "\\.") %>% 
+  mutate(Treatment = Treatment2) %>% 
+  filter(Treatment2 != "WC_TRN") %>% 
+  mutate(Time = as.numeric(Time)) %>% 
+  inner_join(rs.ord, by = "OTU_ID") %>% 
+  mutate(Treatment = str_replace(Treatment, "D", "DS")) %>% 
+  mutate(Treatment = fct_relevel(Treatment, "WC")) %>% 
+  mutate(estimate2 = ifelse(abs(estimate) >5, 5 * sign(estimate), estimate)) %>% 
+  ggplot(aes(Time*10, reorder(OTU_ID, order), fill = estimate2)) +
+  geom_tile() +
+  geom_vline(data = trt.lines, aes(xintercept = IniTreatment*10), linetype = 3, color = "white") +
+  geom_vline(data = trt.lines, aes(xintercept = EndTreatment*10), linetype = 3, color = "white") +
+  #scale_fill_viridis_c(name = "Mean Rel. Abund.\n(z-score)") +
+  scale_fill_gradientn(name = "log2FC",
+                       colors = RColorBrewer::brewer.pal(11, "BrBG")) +
+  #scale_fill_distiller(palette = "Spectral") +
+  ylab("Differentially Abundant OTU") +
+  xlab("Plant Age (days)") +
+  facet_grid(Cluster ~ Treatment, scales = "free", space = "free") +
+  theme_classic() +
+  theme(text = element_text(size = 15),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.line.y = element_blank(),
+        legend.position = "bottom",
+        legend.title.align = 1)
+
+ggsave("4.pdf")
+
+```
+
+### 基于四个聚类模块的微生物丰度时间序列变化
+
+```{r}
+
+rs.agg.ra <- rs.otu.tidy %>% 
+  inner_join(rs.ord, by = "OTU_ID") %>%
+  group_by(Cluster, SampleID) %>% 
+  summarise(AggRelAb = sum(Count)) %>% 
+  inner_join(rs.map, by = "SampleID") %>% 
+  ungroup() %>% 
+  mutate(Treatment = str_replace(Treatment, "D", "DS")) %>% 
+  mutate(Treatment = fct_relevel(Treatment, "WC"))
+
+rs.agg.means <- rs.agg.ra %>% 
+  group_by(Treatment, Compartment, Time, Cluster) %>% 
+  mutate(MeanRelAb = mean(AggRelAb)) %>% 
+  ungroup() 
+
+rs.clstr.p <- rs.agg.ra %>% 
+  ggplot(aes(Age, AggRelAb, color = Treatment)) +
+  geom_point(stat = "identity", position = "dodge", alpha = 0.5, shape = 1) +
+  geom_line(data = rs.agg.means, aes(y = MeanRelAb), size = 1) +
+  geom_vline(xintercept = ws.line, linetype = 3) +
+  scale_color_manual(values = trt.pal, name = "Treatment") +
+  guides(color = guide_legend(ncol = 2)) +
+  ylab("Relative Abundance") +
+  xlab("Plant Age (days)") +
+  facet_wrap(~ Cluster, ncol = 1, scales = "free") +
+  theme_classic() +
+  theme(legend.position = "bottom",
+        text = element_text(size = 15))
+
+rs.clstr.p
+ggsave("./5.pdf")
+```
+
+
+
+
+### 聚类选择可视化对根内微生物来一套
+
+```{r}
+
+es.zs.tidy <- es.otu.tidy %>%
+  inner_join(map, by = "SampleID") %>%
+  filter(OTU_ID %in% es.sig$OTU_ID) %>%
+  group_by(OTU_ID) %>%
+  mutate(zscore = (Count - mean(Count))/sd(Count)) %>%
+  group_by(Treatment, Time, OTU_ID, Age) %>%
+  summarise(MeanZS = mean(zscore)) %>%
+  ungroup()
+
+es.fc.mtx <- es.fc %>% 
+  separate(Contrast, c("Treatment2", "Time"), sep = "\\.") %>% 
+  mutate(Treatment = Treatment2) %>% 
+  filter(Treatment2 != "WC_TRN") %>% 
+  filter(OTU_ID %in% es.sig$OTU_ID) %>% 
+  mutate(Contrast = paste(Treatment2, Time, sep = ".")) %>% 
+  select(Contrast, OTU_ID, estimate) %>% 
+  spread(key = Contrast, value = estimate)
+es.fc.mtx <- as.data.frame(es.fc.mtx) 
+rownames(es.fc.mtx) <- es.fc.mtx$OTU_ID 
+es.fc.mtx <- es.fc.mtx[,-1] 
+
+# See what values of k might be worth testing
+fviz_nbclust(es.fc.mtx, FUN = hcut, method = "wss")
+ggsave("6.pdf")
+# See which method gets you the best clustering
+es.ac <- function(x) {
+  agnes(es.fc.mtx, method = x)$ac
+}
+map_dbl(m, es.ac)
+
+es.k <- 5
+
+es.dist <- dist(as.matrix(es.fc.mtx)) 
+es.clust <- hclust(es.dist, method = "ward.D") 
+es.ord.names <- es.clust$labels[es.clust$order] 
+es.ord <- data.frame(OTU_ID = es.ord.names, order = 1:length(es.ord.names))
+
+es.cut <- cutree(es.clust[c(1,2,4)], k = es.k)
+es.ord$Cluster <- as.factor(es.cut[es.ord$OTU_ID])
+
+es.ord <- es.ord %>% 
+  mutate(Cluster = paste("C", Cluster, sep = "")) %>% 
+  group_by(Cluster) %>% 
+  mutate(nOTU = n()) %>% 
+  ungroup() %>% 
+  mutate(Cluster2 = paste(Cluster, " (", nOTU, " OTUs)", sep = ""))
+
+```
+
+热图可视化
+
+```{r}
+### with relative abundances 
+
+es.hm.p <- es.zs.tidy %>% 
+  inner_join(es.ord, by = "OTU_ID") %>% 
+  mutate(Treatment = str_replace(Treatment, "D", "DS")) %>% 
+  mutate(Treatment = fct_relevel(Treatment, "WC")) %>% 
+  ggplot(aes(Time*10, reorder(OTU_ID, order), fill = MeanZS)) +
+  geom_tile() +
+  geom_vline(data = trt.lines, aes(xintercept = IniTreatment*10), linetype = 3, color = "white") +
+  geom_vline(data = trt.lines, aes(xintercept = EndTreatment*10), linetype = 3, color = "white") +
+  scale_fill_viridis_c(name = "Mean Rel. Abund.\n(z-score)") +
+  #scale_fill_distiller(palette = "Spectral") +
+  ylab("Differentially Abundant OTU") +
+  xlab("Plant Age (days)") +
+  facet_grid(Cluster ~ Treatment, scales = "free", space = "free") +
+  theme_classic() +
+  theme(text = element_text(size = 15),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.line.y = element_blank(),
+        legend.position = "bottom",
+        legend.title.align = 1)
+
+es.hm.p
+ggsave("7.pdf")
+### with log fold changes
+
+es.fc %>% 
+  separate(Contrast, c("Treatment2", "Time"), sep = "\\.") %>% 
+  mutate(Treatment = Treatment2) %>% 
+  filter(Treatment2 != "WC_TRN") %>% 
+  mutate(Time = as.numeric(Time)) %>% 
+  inner_join(es.ord, by = "OTU_ID") %>% 
+  mutate(Treatment = str_replace(Treatment, "D", "DS")) %>% 
+  mutate(Treatment = fct_relevel(Treatment, "WC")) %>% 
+  mutate(estimate2 = ifelse(abs(estimate) >5, 5 * sign(estimate), estimate)) %>% 
+  ggplot(aes(Time*10, reorder(OTU_ID, order), fill = estimate2)) +
+  geom_tile() +
+  geom_vline(data = trt.lines, aes(xintercept = IniTreatment*10), linetype = 3, color = "white") +
+  geom_vline(data = trt.lines, aes(xintercept = EndTreatment*10), linetype = 3, color = "white") +
+  #scale_fill_viridis_c(name = "Mean Rel. Abund.\n(z-score)") +
+  scale_fill_gradientn(name = "log2FC",
+                       colors = RColorBrewer::brewer.pal(11, "BrBG")) +
+  #scale_fill_distiller(palette = "Spectral") +
+  ylab("Differentially Abundant OTU") +
+  xlab("Plant Age (days)") +
+  facet_grid(Cluster ~ Treatment, scales = "free", space = "free") +
+  theme_classic() +
+  theme(text = element_text(size = 15),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.line.y = element_blank(),
+        legend.position = "bottom",
+        legend.title.align = 1)
+ggsave("8.pdf")
+
+```
+
+Visualize the aggregated relative abundances
+
+```{r}
+es.agg.ra <- es.otu.tidy %>% 
+  inner_join(es.ord, by = "OTU_ID") %>%
+  group_by(Cluster, SampleID) %>% 
+  summarise(AggRelAb = sum(Count)) %>% 
+  inner_join(es.map, by = "SampleID") %>% 
+  ungroup() %>% 
+  mutate(Treatment = str_replace(Treatment, "D", "DS")) %>% 
+  mutate(Treatment = fct_relevel(Treatment, "WC"))
+
+es.agg.means <- es.agg.ra %>% 
+  group_by(Treatment, Compartment, Time, Cluster) %>% 
+  mutate(MeanRelAb = mean(AggRelAb)) %>% 
+  ungroup() 
+
+es.clstr.p <- es.agg.ra %>% 
+  ggplot(aes(Age, AggRelAb, color = Treatment)) +
+  geom_point(stat = "identity", position = "dodge", alpha = 0.5, shape = 1) +
+  geom_line(data = es.agg.means, aes(y = MeanRelAb), size = 1) +
+  geom_vline(xintercept = ws.line, linetype = 3) +
+  scale_color_manual(values = trt.pal, name = "Treatment") +
+  guides(color = guide_legend(ncol = 2)) +  
+  ylab("Relative Abundance") +
+  xlab("Plant Age (days)") +
+  facet_wrap(~ Cluster, ncol = 1, scales = "free") +
+  theme_classic() +
+  theme(legend.position = "bottom",
+        text = element_text(size = 15))
+
+es.clstr.p
+
+ggsave("9.pdf")
+```
+
+### 合并根际和根内的结果
+
+```{r}
+all.ord <- rbind(mutate(rs.ord, Compartment = "RS"),
+                 mutate(es.ord, Compartment = "ES"))
+```
+
+为什么我说这位作者的分析水平比我高啊，唉，分析中通过将差异微生物进行聚类结果进行分类，对这些分类命名，查看他们在时间序列上的不同分布状态。在分析过程中我们还可以更加大胆一些。
+
+
+Generate a data frame with all clustering results, and label the interesting clusters for downstream analyses
+Generate a data frame with all the mean z-scores for plotting
+
+```{r}
+
+all.clust.summary <- rbind(mutate(rs.ord, Compartment = "RS"), 
+                           mutate(es.ord, Compartment = "ES")) %>% 
+  mutate(Cluster = paste(Compartment, Cluster, sep = "")) %>%
+  filter(Cluster %in% c("RSC1", "RSC2", "RSC4", "ESC3", "ESC5")) %>% 
+  mutate(Trend = case_when(Cluster == "RSC1" ~ "Transient depletion",
+                           Cluster == "RSC2" ~ "Transient enrichment",
+                           Cluster == "RSC4" ~ "Persistent depletion",
+                           Cluster == "ESC3" ~ "Semi-persistent enrichment",
+                           Cluster == "ESC5" ~ "Persistent depletion")) 
+
+all.cluster.total <- all.clust.summary %>% 
+  group_by(Cluster, nOTU, Cluster2, Compartment, Trend) %>% 
+  dplyr::count() %>% 
+  select(-n) %>% 
+  ungroup() %>% 
+  mutate(Compartment = fct_recode(Compartment, 
+                                  "Rhizosphere" = "RS",
+                                  "Endosphere" = "ES")) %>% 
+  mutate(Compartment = fct_relevel(Compartment, "Rhizosphere"))
+
+all.agg.ra <- rbind(mutate(rs.agg.ra, Compartment = "RS"),
+                    mutate(es.agg.ra, Compartment = "ES")) %>% 
+  mutate(Cluster = paste(Compartment, Cluster, sep = ""))
+
+saveRDS(all.clust.summary, "./Data/drought_clusters_updated.RDS")
+
+
+
+
+```
+
+Get data frames with the aggregated abundances and taxonomies of each cluster
+
+
+```{r}
+
+all.cluster.means <- all.agg.ra %>%
+  mutate(Compartment = fct_recode(Compartment, 
+                                  "Rhizosphere" = "RS",
+                                  "Endosphere" = "ES")) %>% 
+  mutate(Compartment = fct_relevel(Compartment, "Rhizosphere")) %>% 
+  inner_join(select(all.cluster.total, -Compartment), by = "Cluster") %>% 
+  group_by(Compartment, Time, Age, Treatment2, Trend) %>% 
+  summarise(MeanRelAb = mean(AggRelAb)) %>% 
+  ungroup() %>% 
+  mutate(Treatment2 = str_replace(Treatment2, "D", "DS")) %>% 
+  mutate(Treatment2 = fct_relevel(Treatment2, "WC")) 
+
+all.cluster.ab <- all.agg.ra %>% 
+  mutate(Compartment = fct_recode(Compartment, 
+                                  "Rhizosphere" = "RS",
+                                  "Endosphere" = "ES")) %>% 
+  mutate(Compartment = fct_relevel(Compartment, "Rhizosphere")) %>% 
+  inner_join(select(all.cluster.total, -Compartment), by = "Cluster") %>% 
+  mutate(Treatment2 = str_replace(Treatment2, "D", "DS")) %>% 
+  mutate(Treatment2 = fct_relevel(Treatment2, "WC"))
+
+all.cluster.tax <- all.clust.summary %>% 
+  mutate(Compartment = fct_relevel(Compartment, "Rhizosphere")) %>% 
+  group_by(Compartment, Cluster, OTU_ID) %>% 
+  dplyr::count() %>% 
+  ungroup() %>% 
+  inner_join(tax, by = "OTU_ID") %>% 
+  inner_join(select(all.clust.summary, OTU_ID, Trend, Compartment), by = c("Compartment", "OTU_ID")) %>% 
+  mutate(Compartment = fct_recode(Compartment, 
+                                  "Rhizosphere" = "RS",
+                                  "Endosphere" = "ES")) %>% 
+  mutate(Compartment = fct_relevel(Compartment, "Rhizosphere"))
+
+```
+
+Plot the temporal trends displayed by each cluster (Figure 2)
+
+```{r}
+
+all.ab <- all.cluster.ab %>% 
+  ggplot(aes(Age, AggRelAb, color = Treatment2)) +
+  geom_point(alpha = 1, shape = 1, size = 1.5, stroke = 0.4) +
+  geom_vline(xintercept = ws.line, linetype = 3) +
+  geom_line(data = all.cluster.means, aes(y = MeanRelAb), size = 0.75) + 
+  ylab("Cumulative relative abundance") +
+  xlab("Plant age (days)") +
+  facet_wrap(~ Compartment + Trend, scales = "free") +
+  scale_color_manual(values = trt.pal, name = "Treatment") +
+  guides(color = guide_legend(title.position = "top", title.hjust = 0.5)) +
+  theme_classic() +
+  theme(legend.position = c(0.8,0.2),
+        text = element_text(size = 12))
+
+all.ab
+ggsave("10.pdf")
+
+# 可视化不同模块的微生物分布
+all.tax.p <- all.cluster.tax %>% 
+  group_by(Compartment, Trend, PhyClass2) %>% 
+  summarise(Count = sum(n)) %>% 
+  group_by(Compartment, Trend) %>% 
+  mutate(Fraction = Count / sum(Count)) %>% 
+  mutate(ymax = cumsum(Fraction),
+         nPhy = n()) %>% 
+  mutate(ymin = c(0, ymax[1:nPhy - 1])) %>% 
+  ggplot() +
+  geom_rect(aes(ymax=ymax, ymin=ymin, xmax= 4, xmin= 3, fill= PhyClass2)) +
+  geom_text(data = all.cluster.total, aes(2, 0, label = nOTU), size = 7) +
+  scale_fill_manual(name = "Taxon",
+                    values = phy.pal[c(11:14,2:10,1)],
+                    limits = levels(tax$PhyClass2)[c(11:14,2:10,1)]) +
+  guides(fill = guide_legend(ncol = 4)) +
+  coord_polar(theta="y") + 
+  xlim(c(2, 4)) +
+  facet_wrap(. ~ Compartment + Trend, nrow = 1) +
+  theme_void() +
+  theme(text = element_text(size = 12),
+        legend.position = "bottom",
+        legend.title = element_blank(),
+        strip.background = element_blank(),
+        strip.text = element_blank())
+
+all.tax.p
+ggsave("./11.pdf")
+all.clust.p <- plot_grid(all.ab, all.tax.p, 
+                         ncol = 1,
+                         rel_heights = c(6,4),
+                         align = "v",
+                         axis = "lr",
+                         labels = "B",
+                         label_size = 20)
+
+plot_grid(dao.p, all.ab, all.tax.p, 
+          ncol = 1, 
+          rel_heights = c(1,2,1),
+          labels = c("A", "B", NA),
+          label_size = 20) ###766:936
+ggsave("./12.pdf",width = 12,height = 12)
+
+```
+
+### 挑选感兴趣的模块按照分类等级进行可视化
+
+
+```{r}
+all.cluster.tax %>% 
+  group_by(Compartment, Trend, Phylum, PhyClass2, Class, Order) %>% 
+  dplyr::count() %>% 
+  filter(n > 1) %>% 
+  mutate(Taxonomy = paste(Phylum, Class, Order, sep = " / ")) %>% 
+  ggplot(aes(Trend, Taxonomy, fill = PhyClass2)) +
+  geom_tile(color = "white", size = 1) +
+  geom_text(aes(label = n)) +
+  scale_fill_manual(name = "Taxon",
+                    values = phy.pal,
+                    limits = levels(tax$PhyClass2)) +
+  facet_grid(. ~ Compartment, scales = "free", space = "free") +
+  theme_classic() +
+  theme(text = element_text(size = 15),
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        panel.grid.major = element_line(colour = "gray90"),
+        legend.position = "none",
+        axis.line.y = element_blank(),
+        axis.ticks.y = element_blank())
+
+ggsave("./13.pdf")
+```
+
+保存表格，文章发表附件上传
+
+```{r}
+
+silva.class <- read.table("./Data/gg.otu2silva.tax.txt", header = T, sep = "\t", quote = "", comment.char = "") %>% mutate(OTU_ID = as.character(OTU_ID))
+
+all.clust.summary %>% 
+  group_by(Cluster, Trend) %>% 
+  dplyr::count()
+
+supp.clust.summary <- rbind(mutate(rs.ord, Compartment = "RS"), 
+                           mutate(es.ord, Compartment = "ES")) %>% 
+  mutate(Cluster = paste(Compartment, Cluster, sep = "")) %>%
+  mutate(Trend = case_when(Cluster == "RSC1" ~ "Transient depletion",
+                           Cluster == "RSC2" ~ "Transient enrichment",
+                           Cluster == "RSC4" ~ "Persistent depletion",
+                           Cluster == "ESC3" ~ "Semi-persistent enrichment",
+                           Cluster == "ESC5" ~ "Persistent depletion")) %>% 
+  mutate(Cluster = fct_relevel(Cluster, "ESC3", "ESC5", "ESC1", "ESC2", "ESC4", "RSC2", "RSC1", "RSC4", "RSC3")) %>% 
+  select(Compartment, Cluster, Trend, OTU_ID) %>% 
+  inner_join(tax, by = "OTU_ID") %>% 
+  select(-PhyClass, -PhyClass2) %>% 
+  arrange(Cluster, Phylum) %>% 
+  inner_join(silva.class, by = "OTU_ID")
+
+write.table(supp.clust.summary, "../Tables/dao_clstr_updated.tsv", sep = "\t", quote = F, row.names = F)
+```
+
+
+

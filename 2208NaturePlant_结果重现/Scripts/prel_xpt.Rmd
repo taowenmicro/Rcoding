@@ -1,0 +1,221 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+Load libraries
+
+
+```{r}
+source("../General/rmb_functions.R")
+source("../General/parameters.R")
+library(cowplot)
+library(phyloseq)
+library(DESeq2)
+library(tidyverse)
+
+```
+
+Load data and format
+
+```{r}
+
+prel.map <- readRDS("../Data//drought_prel_map.RDS")
+prel.otu <- readRDS("../Data/otu_prel.RDS")
+prel.trt.lines <- data.frame(Treatment = "DS",
+                        IniTreatment = 28,
+                        EndTreatment = 49)
+
+tree <- read_tree("../General/97_otus.tree")
+
+prel.otu.tidy <- prel.otu %>% 
+  rel_ab() %>% 
+  tidy_otu()
+```
+
+Plot experimental timeline
+```{r}
+prel.xpt.ds <- tribble(
+  ~Treatment, ~Age, ~PrevAge, ~WaterStatus,
+  "WC", 28, 0, "W",
+  "WC", 35, 28, "W",
+  "WC", 42, 35, "W",
+  "WC", 49, 42, "W",
+  "WC", 56, 49, "W",
+  "DS", 28, 0, "W",
+  "DS", 35, 28, "S",
+  "DS", 42, 35, "S",
+  "DS", 49, 42, "S",
+  "DS", 56, 49, "W",)
+
+
+prel.xpt.p <- prel.xpt.ds %>% 
+  filter(WaterStatus != "S") %>% 
+  ggplot(aes(PrevAge, Treatment)) +
+  geom_segment(aes(xend = Age, yend = Treatment, color = Treatment), size = 3, linetype = 1) +
+  geom_segment(data = filter(prel.xpt.ds, WaterStatus == "S"), aes(xend = Age, yend = Treatment, color = Treatment), linetype = 2) +
+  geom_point(aes(Age, 2.5), shape = 6, size = 2) +
+  geom_vline(xintercept = c(28,49), linetype = 3) +
+  xlab("Plant Age (days)") +
+  scale_color_manual(values = trt.pal[c(3,1)]) +
+  scale_linetype_manual(values = c(1,3)) +
+  theme_classic() +
+  theme(text = element_text(size = 15),
+        axis.line.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        panel.grid = element_blank(),
+        legend.position = "none")
+prel.xpt.p
+```
+
+Plot alluvial graph 
+IT WILL TAKE SOME TIME TO BE DONE
+
+
+```{r}
+library(ggalluvial)
+
+tmp <- prel.otu.tidy %>% 
+  mutate(Count = Count/100) %>% 
+  inner_join(prel.map, by = "SampleID") %>% 
+  group_by(Compartment, Time, Age, Treatment, OTU_ID) %>% 
+  summarise(MeanAb = mean(Count)) %>% 
+  ungroup() %>% 
+  filter(MeanAb > 0) %>% 
+  mutate(Treatment = fct_relevel(Treatment, "WC")) %>% 
+  mutate(Compartment = fct_recode(Compartment,
+                                  "Rhizosphere" = "RS",
+                                  "Endosphere" = "ES")) %>% 
+  mutate(Compartment = fct_relevel(Compartment, "Rhizosphere"))
+
+prel.ranked.p <- tmp %>% 
+  ggplot(aes(Age, MeanAb, alluvium = OTU_ID)) +
+  geom_alluvium(aes(fill = OTU_ID == "1037355", color = OTU_ID == "1037355", alpha = OTU_ID == "1037355"), decreasing = F, size = 0.25) +
+  geom_vline(data = prel.trt.lines, aes(xintercept = IniTreatment), linetype = 3) +
+  geom_vline(data = prel.trt.lines, aes(xintercept = EndTreatment), linetype = 3) +
+  facet_grid(Compartment ~ Treatment, scales = "free", space = "free") +
+  scale_fill_manual(name = expression(paste("OTU: 1037355 (", italic("Streptomyces "), "sp.)", sep = "")), values = c("white", phy.pal[3])) + 
+  scale_color_manual(name = expression(paste("OTU: 1037355 (", italic("Streptomyces "), "sp.)", sep = "")), values = c("gray50", "black")) + 
+  scale_alpha_manual(name = expression(paste("OTU: 1037355 (", italic("Streptomyces "), "sp.)", sep = "")), values = c(0.5, 1)) +
+  xlab("Plant Age (days)") +
+  ylab("Ranked Relative Abundance") +
+  theme_classic() +
+  theme(text = element_text(size = 15),
+        legend.position = "bottom",
+        plot.title = element_text(hjust = 0.5))
+
+prel.ranked.p
+```
+
+Merge plots
+```{r}
+left <- plot_grid(prel.xpt.p, prel.ranked.p,
+          ncol = 1,
+          rel_heights = c(1,3),
+          labels = c("A", "B"),
+          label_size = 20)
+
+#left
+```
+
+Cacluate WUF for preliminary experiment
+
+```{r}
+prel.otu <- prel.otu[,match(prel.map$SampleID, colnames(prel.otu))]
+
+dds <- DESeqDataSetFromMatrix(countData = prel.otu,
+                              colData = prel.map,
+                              design = ~ 1)
+
+dds <- DESeq(dds)
+vsd.blind <- varianceStabilizingTransformation(dds, blind = TRUE)
+otu <- assay(vsd.blind)
+otu[otu < 0.0] <- 0.0
+
+physeq <- phyloseq(otu_table(otu, taxa_are_rows = TRUE), tree)
+wuf <- as.matrix(phyloseq::distance(physeq, method = "wunifrac"))
+```
+
+Separate by compartments
+```{r}
+wuf <- as.matrix(wuf)
+
+rs.map <- filter(prel.map, Compartment == "RS")
+rs.wuf <- wuf[match(rs.map$SampleID, row.names(wuf)), match(rs.map$SampleID, colnames(wuf))]
+
+es.map <- filter(prel.map, Compartment == "ES")
+es.wuf <- wuf[match(es.map$SampleID, row.names(wuf)), match(es.map$SampleID, colnames(wuf))]
+
+```
+
+Perform PCoAs
+```{r}
+rs.pcoa.axes <- pcoa_axes(rs.wuf, rs.map)
+rs.pcoa.eig <- pcoa_eigval(rs.wuf, rs.map)
+
+es.pcoa.axes <- pcoa_axes(es.wuf, es.map)
+es.pcoa.eig <- pcoa_eigval(es.wuf, es.map)
+```
+
+Plot rhizosphere results
+```{r}
+rs.means <- rs.pcoa.axes %>% 
+  group_by(Treatment, Age) %>% 
+  mutate(Mean = mean(Axis.1)) %>% 
+  ungroup()
+
+rs.p <- rs.pcoa.axes %>% 
+  ggplot(aes(Age, Axis.1)) +
+  geom_point(aes(color = Treatment), shape = 1, size = 2, alpha = 1) +
+  geom_line(data = rs.means, aes(y = Mean, color = Treatment), size = 1) +
+  geom_vline(aes(xintercept = 28), linetype = 3) +
+  geom_vline(aes(xintercept = 49), linetype = 3) +
+  xlab("Plant Age (days)") +
+  ylab(paste("Rhizosphere\nPCo1 (", rs.pcoa.eig$Eigval[1], "%)", sep = "")) +
+  scale_color_manual(values = trt.pal[c(1,3)]) +
+  theme_classic() +
+  theme(legend.position = "none",
+        text = element_text(size = 15))
+
+rs.p
+```
+
+Plot endosphere results
+```{r}
+es.means <- es.pcoa.axes %>% 
+  group_by(Treatment, Age) %>% 
+  mutate(Mean = mean(Axis.1)) %>% 
+  ungroup()
+
+es.p <- es.pcoa.axes %>% 
+  ggplot(aes(Age, Axis.1)) +
+  geom_point(aes(color = Treatment), shape = 1, size = 2, alpha = 1) +
+  geom_line(data = es.means, aes(y = Mean, color = Treatment), size = 1) +
+  geom_vline(aes(xintercept = 28), linetype = 3) +
+  geom_vline(aes(xintercept = 49), linetype = 3) +
+  xlab("Plant Age (days)") +
+  ylab(paste("Endosphere\nPCo1 (", es.pcoa.eig$Eigval[1], "%)", sep = "")) +
+  scale_color_manual(values = trt.pal[c(1,3)]) +
+  theme_classic() +
+  theme(legend.position = "none",
+        text = element_text(size = 15))
+
+es.p
+```
+
+Merge plots
+```{r}
+right <- plot_grid(rs.p, es.p,
+                   ncol = 1,
+                   align = "v",
+                   labels = c("C", "D"),
+                   label_size = 20)
+right
+```
+
+Put it all together. 
+```{r}
+plot_grid(left, right, rel_widths = c(4,3))
+```
+

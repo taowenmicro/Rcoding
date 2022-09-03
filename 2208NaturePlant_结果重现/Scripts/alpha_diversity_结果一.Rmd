@@ -1,0 +1,374 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+
+
+# nature plant 水稻干旱时空序列微生物组分析二次整理
+
+
+## 写在前面1
+
+这部分主要用于分析得到文章中的图一，主要是基于时间序列的alpha多样性分析和差异检测。我们学习作者的分析思路和可视化方案，更重要的是作者对于分析和文章思考。
+
+
+
+
+
+## 首先是分析项目的整理
+
+- Data：分析所需要的数据
+- Figures:文章主图和附图的图片
+- General： 分析过程需要的数据库，参数文件，自建函数文件等
+- Scripts： 分析过程代码
+- Tables：文章中需要的图表
+- tmp： 文章中需要的其他信息，例如示意图
+
+
+
+
+
+
+
+导入R包和函数
+
+```{r}
+
+source("./General/rmb_functions.R")
+source("./General/parameters.R")
+library(vegan)
+library(broom)
+library(tidyverse)
+```
+
+
+
+
+
+### 导入数据
+
+```{r}
+#-基于gg参考聚类的OTU表格，520个样本
+
+otu <- readRDS("./Data/otu_vsd_blind.RDS")
+otu[otu < 0.0] <- 0.0 # 想必经过标准化了，不然怎么会有负值呢
+dim(otu)
+
+# 导入物种注释表格
+tax <- readRDS("./Data/tax.RDS") %>% 
+  classify_organelle()
+head(tax)
+
+map <- readRDS("./Data/drought_map.RDS") %>% 
+  mutate(TimeFctr = as.factor(Time)) %>% 
+  mutate(Treatment = fct_recode(Treatment,
+                                "DS1" = "D1",
+                                "DS2" = "D2",
+                                "DS3" = "D3",
+                                "WC" = "WC"))
+head(map)
+
+# 去除叶绿体
+micro.id <- filter(tax, Assignment == "Microbial")$OTU_ID
+
+#构造时间和生育期表格
+time.age <- map %>% group_by(Time, Age) %>% count() %>% select(-n)
+# 显然作者这里已经整理好了OTU表格，已经全部是微生物序列了
+table(rownames(otu) %in% micro.id)
+
+
+
+```
+
+这里的数据包括水稻的部位信息，干旱处理信息，不同的生育期信息。这算是目前复杂程度最高的微生物组数据挖掘工作了，这篇文章给我们一个典型的例子。
+
+因此，从现在开始，你将看到我会把整个分析流程进行归纳总结，提升，形成流程化的东西。那就从构造ps对象开始.并不是说phyloseq是目前最先进的数据挖掘方式，相反tidy的数据挖掘更加具有可重复性和建设性，所以这里我将两种方式进行无缝对接，从过去链接未来。
+
+```{R}
+library(phyloseq)
+library(ggClusterNet)
+#--构造ps对象
+head(otu)
+
+head(tax)
+row.names(tax) = tax$OTU_ID
+tax$OTU_ID = NULL
+
+head(map)
+colnames(map)[1] = "ID"
+map = map %>% select("ID","Compartment","Age",everything())
+row.names(map) = map$ID
+
+ps = phyloseq::phyloseq(
+  otu_table(as.matrix(otu),taxa_are_rows = T),
+  tax_table(as.matrix(tax)),
+  sample_data(map)
+)
+saveRDS(ps,"ps.rds")
+```
+
+
+### 计算alpha多样性(Calculate alpha diversity)
+
+
+```{r}
+#-仅仅计算shannon多样性
+alpha <- data.frame(ID = colnames(otu),
+                    Shannon = diversity(t(otu))) %>% 
+  inner_join(map, by = "ID") %>% 
+  filter(Treatment2 != "WC_TRN")
+
+#-分为两个部位，根际和根内拆分数据
+alpha.rs <- filter(alpha, Compartment == "RS")
+alpha.es <- filter(alpha, Compartment == "ES")
+
+```
+
+下面开始分析根际的微生物数据：
+
+
+展示alpha多样性分析结果发现多样性随着干旱程度的加深，多样性逐渐降低，恢复水分供应后多样性需要很长一段才能恢复。
+
+
+```{r}
+
+#-按照不同空间-时间，处理计算多样性均值
+
+alpha.rs.means <- alpha.rs %>% 
+  group_by(Treatment, Age) %>% 
+  mutate(Mean = mean(Shannon)) %>% 
+  ungroup()
+
+rs.plot <- alpha.rs %>% 
+  ggplot(aes(Age, Shannon)) +
+  geom_vline(xintercept = ws.line, linetype = 3, color = "gray20", size = 0.5) +
+  geom_point(aes(color = Treatment), alpha = 1, shape = 1, size = 2) +
+  geom_line(data = alpha.rs.means, aes(y = Mean, color = Treatment), size = 1) +
+  xlab("Plant age (days)") +
+   ylab("Rhizosphere\nShannon index") +
+  scale_fill_manual(values = trt.pal) +
+  scale_color_manual(values = trt.pal) +
+  scale_x_continuous(breaks = seq(0,140,20)) +
+  theme_classic() +
+  theme(legend.position = "none",
+        text = element_text(size = 15))
+rs.plot
+
+
+ggsave("1.pdf")
+
+
+```
+
+作者检测alpha多样性的差异。
+
+使用线性混合模型评估实验因素对土壤水分百分比、群落组成（由第一个主轴坐标）和微生物组年龄的影响。在所有模型中，浇水处理、收集时间点及其相互作用被视为固定效应，而实验地点（补充图5）被视为随机效应。
+
+在每个时间点内，使用 emmeans 包进行了比较单个干旱处理（DS1、DS2 和 DS3）与 WC 的成对比较。
+
+
+这个结果对应文章中的图1，和作者分析结果有点不一致。这里我们主要学习基于时间序列的多样性计算和可视化，以及对于两两比较的结果展示方式。
+
+
+
+```{r}
+head(alpha.rs)
+alpha.rs$TimeFctr # 时间梯度做了一个因子变量，为了进行各种建模操作
+#  (1|Row) 注意写法的含义
+alpha.rs.lmm <- lmerTest::lmer(Shannon ~ Treatment * TimeFctr + (1|Row), data = alpha.rs)
+summary(alpha.rs.lmm)
+
+#对建模结果进行检测，处理和时间都对微生物产生了极显著的影响，交互作用不显著
+# 分析结果转化为tidy格式，也就是一个tibble。
+alpha.rs.aov <- anova(alpha.rs.lmm) %>% 
+  tidy()
+
+# 适用于多种方差分析模型，包括重复测量和嵌套设计，其中初始建模将使用‘aov’、‘lm’、‘ez’或‘lme4’(混合模型)输入，进行两两比较，或者时事后比较
+alpha.rs.contrasts <- emmeans::emmeans(alpha.rs.lmm, specs = trt.vs.ctrl ~ Treatment|TimeFctr, adjust = "none") %>% 
+  .$contrasts %>% 
+  as.data.frame() %>% 
+  separate(contrast, c("Treatment", "Control")) %>% 
+  rename("Time" = "TimeFctr") %>% 
+  mutate(Time = as.integer(Time))
+# 得到两两检测差异表格
+alpha.rs.contrasts
+# 可视化检测结果，时间 * 空间正好是一个矩阵，所以，显著性可以通过标记展示在图片面板上，然后使用颜色区分是否显著
+
+rs.sig <- alpha.rs.contrasts %>% 
+  ungroup() %>% 
+  mutate(p.adj = p.adjust(p.value, method = "fdr")) %>% 
+  inner_join(time.age, by = "Time") %>% 
+  ggplot(aes(Age, Treatment)) +
+  geom_point(aes(color = Treatment, alpha = p.adj < 0.05), shape = "*", size = 7) +
+  scale_y_discrete(limits = c("DS3", "DS2", "DS1")) +
+  scale_x_continuous(breaks = seq(0,140,20)) +
+  scale_color_manual(values = trt.pal[-1]) +
+  scale_alpha_manual(values = c(0,1)) +
+  xlab("Plant age (days)") +
+  #xlim(0,NA) +
+  theme_void() +
+  theme(legend.position = "none") 
+
+rs.sig <- alpha.rs.contrasts %>% 
+  ungroup() %>% 
+  mutate(p.adj = p.adjust(p.value, method = "fdr")) %>% 
+  inner_join(time.age, by = "Time") %>% 
+  mutate(Treatment = fct_recode(Treatment,
+                                "WC vs DS1" = "DS1",
+                                "WC vs DS2" = "DS2",
+                                "WC vs DS3" = "DS3")) %>% 
+  ggplot(aes(Age, Treatment)) +
+  geom_line(size = 0.1, color = "gray25") +
+  geom_point(aes(color = Treatment, alpha = p.adj < 0.05), shape = "*", size = 7) +
+  scale_y_discrete(limits = c("WC vs DS3", "WC vs DS2", "WC vs DS1")) +
+  scale_x_continuous(breaks = seq(0,140,20)) +
+  scale_color_manual(values = trt.pal[-1]) +
+  scale_alpha_manual(values = c(0,1)) +
+  xlab("Plant age (days)") +
+  #theme_void() +
+  theme(text = element_text(size = 13),
+        axis.title = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks = element_blank(),
+        panel.background = element_blank(),
+        legend.position = "none") 
+
+#-横坐标是时间，纵坐标有两个，一个是alpha多样性指标，另一个就是处理对了
+rs.final <- cowplot::plot_grid(rs.sig, rs.plot, ncol = 1, rel_heights = c(4,17), align = "v")
+rs.final
+
+# ggsave("2.pdf")
+
+```
+
+
+### 对内生菌进行分析
+
+
+```{r}
+
+alpha.es.means <- alpha.es %>% 
+  group_by(Compartment, Treatment, Age) %>% 
+  mutate(Mean = mean(Shannon)) %>% 
+  ungroup()
+
+es.plot <- alpha.es %>% 
+  ggplot(aes(Age, Shannon)) +
+  geom_vline(xintercept = ws.line, linetype = 3, color = "gray20", size = 0.5) +
+  geom_point(aes(color = Treatment), alpha = 1, shape = 1, size = 2) +
+  geom_line(data = alpha.es.means, aes(y = Mean, color = Treatment), size = 1) +
+  xlab("Plant age (days)") +
+   ylab("Endosphere\nShannon index") +
+  scale_fill_manual(values = trt.pal) +
+  scale_color_manual(values = trt.pal) +
+  scale_x_continuous(breaks = seq(0,140,20)) +
+  theme_classic() +
+  theme(legend.position = "none",
+        text = element_text(size = 15))
+
+alpha.es.lmm <- lmerTest::lmer(Shannon ~ Treatment * TimeFctr + (1|Row), data = alpha.es)
+
+alpha.es.aov <- anova(alpha.es.lmm) %>% 
+  tidy()
+
+alpha.es.contrasts <- emmeans::emmeans(alpha.es.lmm, specs = trt.vs.ctrl ~ Treatment|TimeFctr, adjust = "none") %>% 
+  .$contrasts %>% 
+  as.data.frame() %>% 
+  separate(contrast, c("Treatment", "Control")) %>% 
+  rename("Time" = "TimeFctr") %>% 
+  mutate(Time = as.integer(Time))
+
+alpha.es.contrasts
+
+es.sig <- alpha.es.contrasts %>% 
+  ungroup() %>% 
+  mutate(p.adj = p.adjust(p.value, method = "fdr")) %>% 
+  inner_join(time.age, by = "Time") %>% 
+  ggplot(aes(Age, Treatment)) +
+  geom_point(aes(color = Treatment, alpha = p.adj < 0.05), shape = "*", size = 7) +
+  scale_y_discrete(limits = c("DS3", "DS2", "DS1")) +
+  scale_x_continuous(breaks = seq(0,140,20)) +
+  scale_color_manual(values = trt.pal[-1]) +
+  scale_alpha_manual(values = c(0,1)) +
+  xlab("Plant age (days)") +
+  theme_void() +
+  theme(legend.position = "none") 
+
+cowplot::plot_grid(es.sig, es.plot, ncol = 1, rel_heights = c(3,17), align = "v")
+
+es.sig <- alpha.es.contrasts %>% 
+  ungroup() %>% 
+  mutate(p.adj = p.adjust(p.value, method = "fdr")) %>% 
+  inner_join(time.age, by = "Time") %>% 
+  mutate(Treatment = fct_recode(Treatment,
+                                "WC vs DS1" = "DS1",
+                                "WC vs DS2" = "DS2",
+                                "WC vs DS3" = "DS3")) %>% 
+  ggplot(aes(Age, Treatment)) +
+  geom_line(size = 0.1, color = "gray25") +
+  geom_point(aes(color = Treatment, alpha = p.adj < 0.05), shape = "*", size = 7) +
+  scale_y_discrete(limits = c("WC vs DS3", "WC vs DS2", "WC vs DS1")) +
+  scale_x_continuous(breaks = seq(0,140,20)) +
+  scale_color_manual(values = trt.pal[-1]) +
+  scale_alpha_manual(values = c(0,1)) +
+  xlab("Plant age (days)") +
+  #theme_void() +
+  theme(text = element_text(size = 13),
+        axis.title = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks = element_blank(),
+        panel.background = element_blank(),
+        legend.position = "none") 
+
+es.final <- cowplot::plot_grid(es.sig, es.plot, ncol = 1, rel_heights = c(4,17), align = "v")
+es.final
+
+```
+
+组合根际和根内的alpha多样性结果和差异检测结果
+
+
+```{r}
+
+cowplot::plot_grid(rs.final, es.final, cowplot::get_legend(es.plot + theme(legend.position = "right")), labels = c("A", "B", NA), nrow = 1, label_size = 20, rel_widths = c(3,3,1))
+
+ggsave("4.pdf")
+
+```
+
+
+### 对p值进行矫正
+
+Generate supplementary tables with contrasts
+
+
+```{r}
+
+head(alpha.rs.contrasts)
+
+alpha.rs.contrasts <- alpha.rs.contrasts %>% 
+  ungroup() %>% 
+  mutate(p.adj = p.adjust(p.value, method = "fdr")) %>% 
+  mutate(Contrast = paste(Treatment, Control, sep = "-")) %>% 
+  select(Contrast, Time:p.adj)
+
+alpha.es.contrasts <- alpha.es.contrasts %>% 
+  ungroup() %>% 
+  mutate(p.adj = p.adjust(p.value, method = "fdr")) %>% 
+  mutate(Contrast = paste(Treatment, Control, sep = "-")) %>% 
+  select(Contrast, Time:p.adj)
+
+```
+
+
+
+```{r}
+
+write.table(alpha.rs.aov, "../Tables/rs_alpha_anova.tsv", quote = F, row.names = F, sep = "\t")
+write.table(alpha.es.aov, "../Tables/es_alpha_anova.tsv", quote = F, row.names = F, sep = "\t")
+write.table(alpha.rs.contrasts, "../Tables/rs_alpha_contrasts.tsv", quote = F, row.names = F, sep = "\t")
+write.table(alpha.es.contrasts, "../Tables/es_alpha_contrasts.tsv", quote = F, row.names = F, sep = "\t")
+```
+

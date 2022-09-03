@@ -1,0 +1,259 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+
+source("./General/rmb_functions.R")
+source("./General/parameters.R")
+library(ggridges)
+library(ggtree)
+library(cowplot)
+library(tidyverse)
+
+```
+
+导入数据，源代码这里倒数进化树错误，所以这里我们修改为read.newick函数导入。
+
+
+```{r}
+otu <- readRDS("./Data/otu_pers.RDS")
+map <- readRDS("./Data/drought_map.RDS") %>% 
+  filter(Treatment2 != "WC_TRN")
+clstr <- readRDS("./Data/drought_clusters_updated.RDS")
+tax <- readRDS("./Data/tax.RDS") %>% 
+  mutate(PhyClass2 = fct_recode(PhyClass2, "Low Abundance" = "other"))
+library(phytools)
+tree <- read.newick("./General/97_otus.tree") 
+
+```
+
+
+
+```{r}
+
+#--提取otu表格
+otu <- rel_ab(otu)
+otu.tidy <- tidy_otu(otu)
+#-找到我们感兴趣的微生物
+int.ids <- filter(clstr, Trend == "Semi-persistent enrichment") %>% 
+  inner_join(tax, by = "OTU_ID") %>%
+  filter(Phylum == "Actinobacteria") %>%
+  .$OTU_ID
+
+```
+
+
+Generate data frame for plotting the periods of drought stress
+生成绘制干旱胁迫时期的数据框
+
+
+```{r}
+
+trt.lines <- data.frame(Treatment = c("DS1", "DS2", "DS3"),
+                        IniTreatment = c(41, 41, 41),
+                        EndTreatment = c(52, 62, 74))
+
+```
+
+Calculate and plot abundance-occupancy curves
+计算并绘制丰度-出现频率曲线。这个曲线的目的就是证明这些微生物是大量出现的。 y轴显示检测到每个 OTU 的样本百分比
+
+
+```{r}
+
+oc.ab <- otu.tidy %>% 
+  mutate(Count = Count/100) %>% 
+  inner_join(map, by = "SampleID") %>% 
+  group_by(Compartment, OTU_ID) %>% 
+  summarise(MeanRelAb = mean(Count),
+            Occupancy = sum(Count>0)/208 * 100) %>% 
+  mutate(Compartment = fct_recode(Compartment,
+                                  "Rhizosphere" = "RS",
+                                  "Endosphere" = "ES")) %>% 
+  mutate(Compartment = fct_relevel(Compartment, "Rhizosphere")) %>% 
+  inner_join(tax, by = "OTU_ID")
+
+oc.ab.p <- oc.ab  %>% 
+  filter(!OTU_ID %in% int.ids) %>% 
+  filter(Occupancy > 0) %>% 
+  ggplot(aes(MeanRelAb, Occupancy)) +
+  geom_point(shape = 1, color = "gray25", alpha = 0.5) +
+  geom_point(data = filter(oc.ab, OTU_ID %in% int.ids), shape = 16, aes(color = PhyClass), stroke = 1) +
+  geom_point(data = filter(oc.ab, OTU_ID %in% "1037355"), shape = 21, fill = phy.pal[3], color = "black", size = 3, stroke = 1) +
+  scale_x_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  scale_color_manual(name = "",
+                     values = phy.pal[3],
+                     labels = "Semi-persistently enriched\nActinobacteria") +
+  xlab("Mean relative\nabundance (log10)") +
+  ylab("Occupancy (% samples)") +
+  facet_grid(Compartment ~ ., scales = "free") +
+  theme_classic() +
+  theme(text = element_text(size = 15), 
+        legend.position = "bottom",
+        legend.title = element_blank())
+
+oc.ab.p
+
+ggsave("./1.pdf",height  = 12)
+
+```
+
+
+
+到这里开始逐个关注这个模块中的微生物及其丰度的变化。
+Check the stats for OTU 1037355
+
+
+
+```{r}
+oc.ab %>% 
+  group_by(Compartment) %>% 
+  mutate(PercMean = percent_rank(MeanRelAb)) %>% 
+  filter(OTU_ID == "1037355")
+
+```
+
+### 绘制冲击图
+
+这里需要很长时间
+
+```{r}
+library(ggalluvial)
+
+tmp <- otu.tidy %>% 
+  mutate(Count = Count/100) %>% 
+  inner_join(map, by = "SampleID") %>% 
+  group_by(Compartment, Time, Age, Treatment, OTU_ID) %>% 
+  summarise(MeanAb = mean(Count)) %>% 
+  ungroup() %>% 
+  filter(MeanAb > 0) %>% 
+  mutate(Treatment = str_replace(Treatment, "D", "DS")) %>% 
+  mutate(Treatment = fct_relevel(Treatment, "WC")) %>% 
+  mutate(Compartment = fct_recode(Compartment,
+                                  "Rhizosphere" = "RS",
+                                  "Endosphere" = "ES")) %>% 
+  mutate(Compartment = fct_relevel(Compartment, "Rhizosphere"))
+
+prel.ranked.p <- tmp %>% 
+  ggplot(aes(Age, MeanAb, alluvium = OTU_ID)) +
+  geom_alluvium(aes(fill = OTU_ID == "1037355", color = OTU_ID == "1037355", alpha = OTU_ID == "1037355"), decreasing = F, size = 0.25) +
+  geom_vline(data = trt.lines, aes(xintercept = IniTreatment), linetype = 3) +
+  geom_vline(data = trt.lines, aes(xintercept = EndTreatment), linetype = 3) +
+  facet_grid(Compartment ~ Treatment, scales = "free", space = "free") +
+  scale_fill_manual(name = expression(paste("OTU: 1037355 (", italic("Streptomyces "), "sp.)", sep = "")), values = c("white", phy.pal[3])) + 
+  scale_color_manual(name = expression(paste("OTU: 1037355 (", italic("Streptomyces "), "sp.)", sep = "")), values = c("gray50", "black")) + 
+  scale_alpha_manual(name = expression(paste("OTU: 1037355 (", italic("Streptomyces "), "sp.)", sep = "")), values = c(0.5, 1)) +
+  xlab("Plant age\n(days)") +
+  ylab("Ranked relative abundance") +
+  theme_classic() +
+  theme(text = element_text(size = 15),
+        legend.position = "bottom",
+        plot.title = element_text(hjust = 0.5))
+
+ggsave("./2.pdf",prel.ranked.p)
+
+```
+
+
+### 拼图
+
+```{r}
+plot_grid(oc.ab.p, prel.ranked.p, 
+           align = "h",
+           axis = "tb",
+           rel_widths = c(1,3),
+           labels = c("A", "B"),
+           label_size = 20)
+```
+
+
+
+### 分离株和OTU进行比对
+
+Plot the alignments of the isolates mapping to OTU 1037355。
+
+这里的逻辑我帮大家梳理一下。这里首先用的97的聚类得到的OTU，我们的目标OTU是OTU 1037355，但是所有被分类为这个OTU的序列并不是完全一致的，所有这里选择了最能代表这个OTU的序列作为最可能的序列和分菌的序列比对。
+
+这里候选了10中相似的链霉菌，有物种之和目标菌株有一个碱基的差异，根际这个分菌的来源，最终选择了177号菌株。
+
+```{r}
+
+iso.pal <- wesanderson::wes_palette(name = "Zissou1", n = 5, type = "discrete")[c(1,3,5)]
+
+seqs <- readRDS("../Data/actino_seqs.RDS")
+
+seq.p <- seqs %>%
+  select(-(OTU.major.sequence:SLBN.111)) %>%
+  gather("Isolate","match",OTU.major.seq:`SLBN-111`) %>%
+  mutate(Isolate = fct_recode(Isolate,
+                              "OTU: 1037355\nprevalent seq" = "OTU.major.seq")) %>% 
+  mutate(Isolate = fct_relevel(Isolate,
+                               "OTU: 1037355\nprevalent seq",
+                               "SLBN-197",
+                               "SLBN-175",
+                               "SLBN-134",
+                               "SLBN-193",
+                               "SLBN-191",
+                               "SLBN-186",
+                               "SLBN-177",
+                               "SLBN-162",
+                               "SLBN-161",
+                               "SLBN-111")) %>%
+  ggplot(.,aes(x=Position,y=1,fill=match))+
+  geom_tile()+
+  facet_grid(Isolate~.)+
+  scale_fill_manual(values=c("black","grey80"))+
+  theme_minimal()+
+  theme(text = element_text(size = 15),
+        strip.text.y = element_text(angle = 0,hjust=0, size = 10),
+        axis.title.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.text.y = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.position="none")
+ggsave("./4.pdf")
+```
+
+Plot the abundance-occupancy info on the isolates used for the phenotyping experiment. 
+绘制用于表型实验的菌株的丰度占用信息。
+
+```{r}
+oc.ab <- otu.tidy %>% 
+  #filter(Count > 0) %>% 
+  mutate(Count = Count/100) %>% 
+  inner_join(map, by = "SampleID") %>% 
+  group_by(Compartment, OTU_ID) %>% 
+  summarise(MeanRelAb = mean(Count),
+            Occupancy = sum(Count>0)/208 * 100) %>% 
+  mutate(Compartment = fct_recode(Compartment,
+                                  "Rhizosphere" = "RS",
+                                  "Endosphere" = "ES")) %>% 
+  mutate(Compartment = fct_relevel(Compartment, "Rhizosphere"))
+
+oc.ab.p <- oc.ab  %>% 
+  ggplot(aes(MeanRelAb, Occupancy)) +
+  geom_point(shape = 1, color = "gray25", alpha = 0.5) +
+  geom_point(data = filter(oc.ab, OTU_ID %in% c("1037355", "1108350")), aes(fill = OTU_ID), shape = 21, color = "white", size = 3) +
+  scale_x_log10() +
+  scale_fill_manual(name = "OTU",
+                     values = iso.pal[3:2]) +
+  xlab("Mean relative abundance\n(log10)") +
+  ylab("Occupancy\n(% samples)") +
+  facet_wrap(~ Compartment) +
+  theme_classic() +
+  theme(text = element_text(size = 15))
+
+ggsave("./5.pdf")
+```
+
+Put it all together
+```{r}
+plot_grid(seq.p, oc.ab.p,
+          ncol = 1,
+          labels = c("A", "B"),
+          label_size = 20)
+```
