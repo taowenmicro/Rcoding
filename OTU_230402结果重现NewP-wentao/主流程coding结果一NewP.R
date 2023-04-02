@@ -317,7 +317,7 @@ alppath = paste(otupath,"/alpha/",sep = "")
 dir.create(alppath)
 
 #---多种指标alpha多样性分析加出图-标记显著性
-source("E:\\Shared_Folder\\Function_local\\R_function\\micro/alpha-diversity.R")
+source("./alpha-diversity.R")
 index = c("Shannon","Inv_Simpson","Pielou_evenness","Simpson_evenness" ,"Richness" ,"Chao1","ACE" )
 
 #--多种组合alpha分析和差异分析出图
@@ -371,9 +371,9 @@ dir.create(betapath)
 # "chao"  "cao" "w"  "-1"  "c" "wb"  "r"   "I"  "e" "t" "me"   "j"  "sor"  "m"   "-2"  "co"
 # DCA, CCA, RDA, NMDS, MDS, PCoA, PCA, LDA
 
-source("E:\\Shared_Folder\\Function_local\\R_function\\micro/BetaDiv.R")
-source("E:\\Shared_Folder\\Function_local\\R_function\\micro/MicroTest.R")
-source("E:\\Shared_Folder\\Function_local\\R_function\\micro/pairMicroTest.R")
+source("./BetaDiv.R")
+source("./MicroTest.R")
+source("./pairMicroTest.R")
 
 method = "NMDS"
 
@@ -624,7 +624,7 @@ rs.ord <- rs.ord %>%
   mutate(Cluster2 = paste(Cluster, " (", nOTU, " OTUs)", sep = ""))
 
 
-source("E:/Shared_Folder/Study_project/21年干旱natureplant/RiceDroughtRecovery-master/General/rmb_functions.R")
+source("./rmb_functions.R")
 ### with relative abundances
 
 #--相对丰度转化
