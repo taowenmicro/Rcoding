@@ -1,0 +1,43 @@
+"","Group","Super_class","Abundance(%)"
+"1","Brachy_00h","Benzenoids",0.00961555430643735
+"2","Brachy_00h","Lipids and lipid-like molecules",0.0477923679000674
+"3","Brachy_00h","Nucleosides, nucleotides, and analogues",0.020018516049346
+"4","Brachy_00h","Organic acids and derivatives",13.3526222568936
+"5","Brachy_00h","Organic oxygen compounds",1.5624139241968
+"6","Brachy_00h","Organoheterocyclic compounds",63.3305674770383
+"7","Brachy_00h","Unknown",21.6769699036154
+"8","Brachy_02h","Benzenoids",0.00922471769063988
+"9","Brachy_02h","Lipids and lipid-like molecules",0
+"10","Brachy_02h","Nucleosides, nucleotides, and analogues",0.437639382640424
+"11","Brachy_02h","Organic acids and derivatives",43.3348778780505
+"12","Brachy_02h","Organic oxygen compounds",0.0377166390889027
+"13","Brachy_02h","Organoheterocyclic compounds",43.7868809231868
+"14","Brachy_02h","Unknown",12.3936604593427
+"15","Brachy_04h","Benzenoids",0.00555270025408742
+"16","Brachy_04h","Lipids and lipid-like molecules",0.00044191712935691
+"17","Brachy_04h","Nucleosides, nucleotides, and analogues",0.0334085863153468
+"18","Brachy_04h","Organic acids and derivatives",49.597226657042
+"19","Brachy_04h","Organic oxygen compounds",0.151341436475002
+"20","Brachy_04h","Organoheterocyclic compounds",31.547555534006
+"21","Brachy_04h","Unknown",18.6644731687782
+"22","Brachy_1d","Benzenoids",0.00899083510395202
+"23","Brachy_1d","Lipids and lipid-like molecules",0.00691268750302957
+"24","Brachy_1d","Nucleosides, nucleotides, and analogues",0.51820991540859
+"25","Brachy_1d","Organic acids and derivatives",35.1722780770929
+"26","Brachy_1d","Organic oxygen compounds",0.179636413893522
+"27","Brachy_1d","Organoheterocyclic compounds",48.1325005055258
+"28","Brachy_1d","Unknown",15.9814715654722
+"29","Brachy_4d","Benzenoids",0.00955374748571244
+"30","Brachy_4d","Lipids and lipid-like molecules",0.0984368286663701
+"31","Brachy_4d","Nucleosides, nucleotides, and analogues",0.654476516603375
+"32","Brachy_4d","Organic acids and derivatives",40.0060048361179
+"33","Brachy_4d","Organic oxygen compounds",0.984999193956108
+"34","Brachy_4d","Organoheterocyclic compounds",40.3849982673697
+"35","Brachy_4d","Unknown",17.8615306098008
+"36","Brachy_p5h","Benzenoids",0.0213803180401927
+"37","Brachy_p5h","Lipids and lipid-like molecules",0.0209450602892818
+"38","Brachy_p5h","Nucleosides, nucleotides, and analogues",0.029789429643624
+"39","Brachy_p5h","Organic acids and derivatives",0.548161980874536
+"40","Brachy_p5h","Organic oxygen compounds",0.047435350911465
+"41","Brachy_p5h","Organoheterocyclic compounds",46.4046868356941
+"42","Brachy_p5h","Unknown",52.9276010245468

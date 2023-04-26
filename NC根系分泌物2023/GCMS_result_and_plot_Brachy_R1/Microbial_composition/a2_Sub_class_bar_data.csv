@@ -1,0 +1,55 @@
+"","Group","Sub_class","Abundance(%)"
+"1","Brachy_00h","Alcohols and polyols",1.5624139241968
+"2","Brachy_00h","Amino acids, peptides, and analogues",13.3526222568936
+"3","Brachy_00h","Fatty acids and conjugates",0.0477923679000674
+"4","Brachy_00h","Methoxyphenols",0.00961555430643735
+"5","Brachy_00h","Purines and purine derivatives",63.186458758892
+"6","Brachy_00h","Pyridinecarboxylic acids and derivatives",0.100275954112481
+"7","Brachy_00h","Pyrimidine 2'-deoxyribonucleosides",0.020018516049346
+"8","Brachy_00h","Pyrimidines and pyrimidine derivatives",0.0438327640338553
+"9","Brachy_00h","Unknown",21.6769699036154
+"10","Brachy_02h","Alcohols and polyols",0.0377166390889027
+"11","Brachy_02h","Amino acids, peptides, and analogues",43.3348778780505
+"12","Brachy_02h","Fatty acids and conjugates",0
+"13","Brachy_02h","Methoxyphenols",0.00922471769063988
+"14","Brachy_02h","Purines and purine derivatives",43.6896484892431
+"15","Brachy_02h","Pyridinecarboxylic acids and derivatives",0.00860721305491351
+"16","Brachy_02h","Pyrimidine 2'-deoxyribonucleosides",0.437639382640424
+"17","Brachy_02h","Pyrimidines and pyrimidine derivatives",0.0886252208887839
+"18","Brachy_02h","Unknown",12.3936604593427
+"19","Brachy_04h","Alcohols and polyols",0.151341436475002
+"20","Brachy_04h","Amino acids, peptides, and analogues",49.597226657042
+"21","Brachy_04h","Fatty acids and conjugates",0.00044191712935691
+"22","Brachy_04h","Methoxyphenols",0.00555270025408742
+"23","Brachy_04h","Purines and purine derivatives",31.4731114023588
+"24","Brachy_04h","Pyridinecarboxylic acids and derivatives",0.00530968773934521
+"25","Brachy_04h","Pyrimidine 2'-deoxyribonucleosides",0.0334085863153468
+"26","Brachy_04h","Pyrimidines and pyrimidine derivatives",0.0691344439078073
+"27","Brachy_04h","Unknown",18.6644731687782
+"28","Brachy_1d","Alcohols and polyols",0.179636413893522
+"29","Brachy_1d","Amino acids, peptides, and analogues",35.1722780770929
+"30","Brachy_1d","Fatty acids and conjugates",0.00691268750302957
+"31","Brachy_1d","Methoxyphenols",0.00899083510395202
+"32","Brachy_1d","Purines and purine derivatives",47.923268271245
+"33","Brachy_1d","Pyridinecarboxylic acids and derivatives",0.00763899692680498
+"34","Brachy_1d","Pyrimidine 2'-deoxyribonucleosides",0.51820991540859
+"35","Brachy_1d","Pyrimidines and pyrimidine derivatives",0.201593237353973
+"36","Brachy_1d","Unknown",15.9814715654722
+"37","Brachy_4d","Alcohols and polyols",0.984999193956108
+"38","Brachy_4d","Amino acids, peptides, and analogues",40.0060048361179
+"39","Brachy_4d","Fatty acids and conjugates",0.0984368286663701
+"40","Brachy_4d","Methoxyphenols",0.00955374748571244
+"41","Brachy_4d","Purines and purine derivatives",39.6068233254603
+"42","Brachy_4d","Pyridinecarboxylic acids and derivatives",0.123570756133248
+"43","Brachy_4d","Pyrimidine 2'-deoxyribonucleosides",0.654476516603375
+"44","Brachy_4d","Pyrimidines and pyrimidine derivatives",0.654604185776212
+"45","Brachy_4d","Unknown",17.8615306098008
+"46","Brachy_p5h","Alcohols and polyols",0.047435350911465
+"47","Brachy_p5h","Amino acids, peptides, and analogues",0.548161980874536
+"48","Brachy_p5h","Fatty acids and conjugates",0.0209450602892818
+"49","Brachy_p5h","Methoxyphenols",0.0213803180401927
+"50","Brachy_p5h","Purines and purine derivatives",46.2599382364883
+"51","Brachy_p5h","Pyridinecarboxylic acids and derivatives",0.014091761633695
+"52","Brachy_p5h","Pyrimidine 2'-deoxyribonucleosides",0.029789429643624
+"53","Brachy_p5h","Pyrimidines and pyrimidine derivatives",0.130656837572051
+"54","Brachy_p5h","Unknown",52.9276010245468

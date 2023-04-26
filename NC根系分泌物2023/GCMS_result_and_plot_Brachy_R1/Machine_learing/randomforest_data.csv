@@ -1,0 +1,41 @@
+,Brachy_00h,Brachy_02h,Brachy_04h,Brachy_1d,Brachy_4d,Brachy_p5h,MeanDecreaseAccuracy,MeanDecreaseGini,id,iid
+5-methylthioadenosine,5.6,0.17,6.07,2.44,-0.4,1.17,7.19,1.03,5-methylthioadenosine,1
+deoxycarnitine,3.83,5.36,2.62,2.48,3.18,0.3,6.48,0.71,deoxycarnitine,2
+2-deoxyguanosine,4.21,2.98,2.43,2.98,3.12,3.14,6.06,0.43,2-deoxyguanosine,3
+N-acetyl-phenylalanine,1.07,3.39,3.7,0.56,3.28,4.05,5.94,0.6,N-acetyl-phenylalanine,4
+5-deoxyadenosine,2.33,3.15,2.65,3.61,1.85,0.34,5.22,0.53,5-deoxyadenosine,5
+threonine,-0.22,5.45,2.33,1.71,0.32,1.64,5.14,0.49,threonine,6
+3-methyladenine,4.82,2.15,3.78,0.73,0.55,-0.53,5.1,0.79,3-methyladenine,7
+xanthine,-1.23,2.19,2.5,4.22,2.83,2.66,5.06,0.44,xanthine,8
+histamine and unresolvable, unidentified isomers,2.18,0.26,-0.47,2.53,3.3,4.45,4.93,0.61,histamine and unresolvable, unidentified isomers,9
+dethiobiotin,3.21,3.46,3.54,2.54,-0.19,1.46,4.52,0.45,dethiobiotin,10
+4-pyridoxic acid,3.92,2.07,2.37,1.5,2.66,-0.22,4.4,0.51,4-pyridoxic acid,11
+5-methylcytosine,1.84,1.9,0.28,-1.83,4.31,1.33,4.37,0.43,5-methylcytosine,12
+vanillic acid,3.04,1.26,1.84,2.8,3.86,-0.46,4.27,0.62,vanillic acid,13
+betaine,-2.18,2.23,1.8,1.87,1.62,4.47,4.25,0.5,betaine,14
+hypoxanthine,-0.08,1.35,0.8,2.69,-1.46,4.91,4.08,0.62,hypoxanthine,15
+inosine,1.35,3.07,1.24,1.57,1.41,1.03,3.88,0.33,inosine,16
+4-aminobutanoic acid,-0.25,4.62,-0.83,0.85,0.32,2.01,3.74,0.38,4-aminobutanoic acid,17
+uracil,0.29,4.33,0.58,3.34,1.74,-1.6,3.62,0.39,uracil,18
+4-imidazoleacetic acid,2.69,0.61,1,0.69,2,-0.63,3.58,0.37,4-imidazoleacetic acid,19
+histidinol and unresolvable, unidentified isomers,2.67,-1.06,-0.51,1.09,2.43,4.28,3.32,0.5,histidinol and unresolvable, unidentified isomers,20
+guanine,3.63,-0.56,1.18,1.11,2.32,-0.99,3.27,0.46,guanine,21
+2-deoxyadenosine,-3.16,1.42,1.85,1.85,1.84,4.48,3.25,0.37,2-deoxyadenosine,22
+isoleucine,2.13,3.08,1.59,-1.34,0.73,-1.29,3.22,0.27,isoleucine,23
+4-quinolinecarboxylic acid,0.33,1.33,-1.14,1.9,4.18,-0.11,3.21,0.42,4-quinolinecarboxylic acid,24
+cytosine,-1.05,1.39,-0.18,0,4.18,1.34,3.16,0.23,cytosine,25
+ferulic acid,2.13,2.18,-1.05,2.88,0.74,-0.38,3.14,0.4,ferulic acid,26
+trigonelline and unresolvable, unidentified isomers,1.27,1.67,0.38,1.38,2.99,-1.79,3.05,0.35,trigonelline and unresolvable, unidentified isomers,27
+unidentified isomer of 3-hydroxyanthranilic acid,-0.45,1.62,3.84,0.35,-1.31,2.73,3.03,0.47,unidentified isomer of 3-hydroxyanthranilic acid,28
+unidentified isomer of cytidine,1.44,3.72,0.83,-0.21,1.51,1,2.91,0.31,unidentified isomer of cytidine,29
+phenylalanine,1.99,4.15,1.16,-0.83,-3.16,1.34,2.83,0.37,phenylalanine,30
+adenosine,-1.34,2.5,0.28,3.08,2.09,-1.42,2.78,0.23,adenosine,31
+glucuronolactone,1.27,0.26,-1.39,0.43,2.52,1.81,2.74,0.26,glucuronolactone,32
+proline and unresolvable, unidentified isomers,1.9,1.39,0,1.1,1.42,1,2.69,0.15,proline and unresolvable, unidentified isomers,33
+pyridoxine,-1.76,1.9,2.18,2.01,2,-0.3,2.65,0.24,pyridoxine,34
+acetylcholine,1.42,1,0,-0.12,2.85,1.34,2.61,0.16,acetylcholine,35
+sarcosine,1.27,1,-0.11,1.82,1.27,1.67,2.61,0.17,sarcosine,36
+leucine/norleucine,-1,3.34,1.9,2.1,-0.56,-1.12,2.49,0.28,leucine/norleucine,37
+3-methoxytyramine,1.88,0,-1,1.27,-1.34,2.39,2.39,0.25,3-methoxytyramine,38
+unidentified isomer of nicotinic acid,-1.7,-1,1.64,0.82,2.35,1.64,2.34,0.17,unidentified isomer of nicotinic acid,39
+homovanillic acid,2.12,-0.24,1.9,1.42,0.42,-1.14,2.2,0.19,homovanillic acid,40
