@@ -1,0 +1,43 @@
+"","Group","Super_class","Abundance(%)"
+"1","Arabidopsis_00h","Benzenoids",0.00292906761289864
+"2","Arabidopsis_00h","Lipids and lipid-like molecules",0
+"3","Arabidopsis_00h","Nucleosides, nucleotides, and analogues",0.0130358821018442
+"4","Arabidopsis_00h","Organic acids and derivatives",41.2055076991728
+"5","Arabidopsis_00h","Organic oxygen compounds",0.087834823590488
+"6","Arabidopsis_00h","Organoheterocyclic compounds",29.9984520977663
+"7","Arabidopsis_00h","Unknown",28.6922404297557
+"8","Arabidopsis_02h","Benzenoids",0.00719877436044975
+"9","Arabidopsis_02h","Lipids and lipid-like molecules",0.00059297949258489
+"10","Arabidopsis_02h","Nucleosides, nucleotides, and analogues",0.0154444010514546
+"11","Arabidopsis_02h","Organic acids and derivatives",36.0567229216957
+"12","Arabidopsis_02h","Organic oxygen compounds",0.153464749256598
+"13","Arabidopsis_02h","Organoheterocyclic compounds",46.1299110064762
+"14","Arabidopsis_02h","Unknown",17.636665167667
+"15","Arabidopsis_04h","Benzenoids",2.83811993448686e-05
+"16","Arabidopsis_04h","Lipids and lipid-like molecules",0.00244760176270234
+"17","Arabidopsis_04h","Nucleosides, nucleotides, and analogues",0.0167719150721482
+"18","Arabidopsis_04h","Organic acids and derivatives",26.049912202339
+"19","Arabidopsis_04h","Organic oxygen compounds",0.153848603592993
+"20","Arabidopsis_04h","Organoheterocyclic compounds",43.4970592475352
+"21","Arabidopsis_04h","Unknown",30.2799320484986
+"22","Arabidopsis_1d","Benzenoids",0.000223553218584732
+"23","Arabidopsis_1d","Lipids and lipid-like molecules",0
+"24","Arabidopsis_1d","Nucleosides, nucleotides, and analogues",0.0998983405355277
+"25","Arabidopsis_1d","Organic acids and derivatives",15.9433141399763
+"26","Arabidopsis_1d","Organic oxygen compounds",0.222237824320959
+"27","Arabidopsis_1d","Organoheterocyclic compounds",44.103099879313
+"28","Arabidopsis_1d","Unknown",39.6312262626356
+"29","Arabidopsis_4d","Benzenoids",0.000285396208948451
+"30","Arabidopsis_4d","Lipids and lipid-like molecules",0
+"31","Arabidopsis_4d","Nucleosides, nucleotides, and analogues",0.165832655115
+"32","Arabidopsis_4d","Organic acids and derivatives",15.4745156450072
+"33","Arabidopsis_4d","Organic oxygen compounds",0.632343821075039
+"34","Arabidopsis_4d","Organoheterocyclic compounds",16.709023603464
+"35","Arabidopsis_4d","Unknown",67.0179988791299
+"36","Arabidopsis_p5h","Benzenoids",0.000538677192555856
+"37","Arabidopsis_p5h","Lipids and lipid-like molecules",0
+"38","Arabidopsis_p5h","Nucleosides, nucleotides, and analogues",0.0136062065208185
+"39","Arabidopsis_p5h","Organic acids and derivatives",49.8949932053783
+"40","Arabidopsis_p5h","Organic oxygen compounds",0.0721246899460398
+"41","Arabidopsis_p5h","Organoheterocyclic compounds",28.5971754133581
+"42","Arabidopsis_p5h","Unknown",21.4215618076042

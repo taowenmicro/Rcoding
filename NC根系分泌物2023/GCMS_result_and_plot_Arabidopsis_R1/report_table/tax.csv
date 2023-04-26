@@ -1,0 +1,65 @@
+"","id2","HMDBID","KEGGID","Descrip","Kingdom","Super_class","Class","Sub_class","CAS","DTXSID","DTXCID","SID","CID","KEGG","ChEBI","Drugbank","Name"
+"2-hydroxypyridine","2-hydroxypyridine",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"2-deoxyadenosine","2-deoxyadenosine",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"2-deoxyguanosine","2-deoxyguanosine",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"3-methoxytyramine","3-methoxytyramine","HMDB0000022","C05587","belongs to the class of organic compounds known as methoxyphenols. Methoxyphenols are compounds containing a methoxy group attached to the benzene ring of a phenol moiety.","Organic compounds","Benzenoids","Phenols","Methoxyphenols","554-52-9",NA,NA,"223438743",NA,"C05587","  1582",NA,"3-Methoxytyramine"
+"3-methyladenine","3-methyladenine","HMDB0011600",NA,NA,NA,NA,NA,NA,"5142-23-4","DTXSID80199406","DTXCID70121897","315759746"," 1673","C00913"," 38635","DB04104","3-Methyladenine"
+"4-aminobutanoic acid","4-aminobutanoic acid","HMDB0000112","C00334","belongs to the class of organic compounds known as gamma amino acids and derivatives. These are amino acids having a (-NH2) group attached to the gamma carbon atom.","Organic compounds","Organic acids and derivatives","Carboxylic acids and derivatives","Amino acids, peptides, and analogues","56-12-2","DTXSID6035106","DTXCID4015106","315677424","  119","C00334"," 16865","DB02530","4-Aminobutanoic acid"
+"4-guanidinobutanoic acid","4-guanidinobutanoic acid",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"4-hydroxybenzoic acid","4-hydroxybenzoic acid","HMDB0000500",NA,NA,NA,NA,NA,NA,"99-96-7","DTXSID3026647","DTXCID806647","315675580","  135","C00156"," 30763","DB04242","4-Hydroxybenzoic acid"
+"4-imidazoleacetic acid","4-imidazoleacetic acid",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"4-pyridoxic acid","4-pyridoxic acid","HMDB0000017","C00847","belongs to the class of organic compounds known as pyridinecarboxylic acids. Pyridinecarboxylic acids are compounds containing a pyridine ring bearing a carboxylic acid group.","Organic compounds","Organoheterocyclic compounds","Pyridines and derivatives","Pyridinecarboxylic acids and derivatives","82-82-6",NA,NA,"  8144151",NA,"C00847"," 17405",NA,"4-Pyridoxic acid"
+"4-quinolinecarboxylic acid","4-quinolinecarboxylic acid",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"5-methylcytosine","5-methylcytosine","HMDB0002894","C02376","belongs to the class of organic compounds known as hydroxypyrimidines. These are organic compounds containing a hydroxyl group attached to a pyrimidine ring. Pyrimidine is a 6-membered ring consisting of four carbon atoms and two nitrogen centers at the 1- and 3- ring positions.","Organic compounds","Organoheterocyclic compounds","Diazines","Pyrimidines and pyrimidine derivatives","554-01-8","DTXSID50203948","DTXCID80126439","315764278","65040","C02376"," 27551",NA,"5-Methylcytosine"
+"5-deoxyadenosine","5-deoxyadenosine",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"5-methylthioadenosine","5-methylthioadenosine",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"acetylcholine","acetylcholine","HMDB0000895",NA,NA,NA,NA,NA,NA,"51-84-3","DTXSID8075334","DTXCID6040951","315703258","  187","C01996"," 15355","DB03128","Acetylcholine"
+"adenine","adenine","HMDB0000034","C00147","belongs to the class of organic compounds known as 6-aminopurines. These are purines that carry an amino group at position 6. Purine is a bicyclic aromatic compound made up of a pyrimidine ring fused to an imidazole ring.","Organic compounds","Organoheterocyclic compounds","Imidazopyrimidines","Purines and purine derivatives","73-24-5","DTXSID6022557","DTXCID502557","315673252","  190","C00147"," 16708","DB00173","Adenine"
+"adenosine","adenosine","HMDB0000050",NA,NA,NA,NA,NA,NA,"58-61-7","DTXSID1022558","DTXCID902558","315673253","60961","C00212"," 16335","DB00640","Adenosine"
+"alpha-hydroxyisobutyric acid","alpha-hydroxyisobutyric acid",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"an hydroxycinnamic acid","an hydroxycinnamic acid",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"azelaic acid and unresolvable, unidentified isomers","azelaic acid and unresolvable, unidentified isomers",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"betaine","betaine","HMDB0000043","","belongs to the class of organic compounds known as alpha amino acids. These are amino acids in which the amino group is attached to the carbon atom immediately adjacent to the carboxylate group (alpha carbon).","Organic compounds","Organic acids and derivatives","Carboxylic acids and derivatives","Amino acids, peptides, and analogues",NA,NA,NA," 26697202",NA,NA," 41139","DB04455","Betaine"
+"bis(3-aminopropyl)amine","bis(3-aminopropyl)amine",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"caffeic acid","caffeic acid","HMDB0003501",NA,NA,NA,NA,NA,NA,"331-39-5","DTXSID5020231","DTXCID10231","315671222"," 2518","C01481"," 17395","DB01880","Caffeic acid"
+"carnitine","carnitine",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"choline o-sulfuric acid","choline o-sulfuric acid",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"cytosine","cytosine","HMDB0000630",NA,NA,NA,NA,NA,NA,"71-30-7","DTXSID4044456","DTXCID2024456","315680409","  597","C00380"," 16040",NA,"Cytosine"
+"deoxycarnitine","deoxycarnitine",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"deoxycytidine","deoxycytidine","HMDB0000014","C00881","belongs to the class of organic compounds known as pyrimidine 2'-deoxyribonucleosides. Pyrimidine 2'-deoxyribonucleosides are compounds consisting of a pyrimidine linked to a ribose which lacks a hydroxyl group at position 2.","Organic compounds","Nucleosides, nucleotides, and analogues","Pyrimidine nucleosides","Pyrimidine 2'-deoxyribonucleosides","951-77-9",NA,NA,"  8145772",NA,"C00881"," 15698","DB02594","Deoxycytidine"
+"dethiobiotin","dethiobiotin","HMDB0003581","C01909","belongs to the class of organic compounds known as medium-chain fatty acids. These are fatty acids with an aliphatic tail that contains between 4 and 12 carbon atoms.","Organic compounds","Lipids and lipid-like molecules","Fatty Acyls","Fatty acids and conjugates","533-48-2",NA,NA," 26697261",NA,"C01909"," 42280","DB03775","Dethiobiotin"
+"dihexose(s)","dihexose(s)",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"ferulic acid","ferulic acid","HMDB0000954",NA,NA,NA,NA,NA,NA,"1135-24-6","DTXSID5040673",NA,NA,NA,"C01494"," 17620","DB07767","Ferulic acid"
+"glucuronolactone","glucuronolactone",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"glutamine","glutamine",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"glyceraldehyde or lactic acid","glyceraldehyde or lactic acid",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"guanine","guanine","HMDB0000132","C00242","belongs to the class of organic compounds known as purines and purine derivatives. These are aromatic heterocyclic compounds containing a purine moiety, which is formed a pyrimidine-ring ring fused to an imidazole ring.","Organic compounds","Organoheterocyclic compounds","Imidazopyrimidines","Purines and purine derivatives","73-40-5","DTXSID9052476","DTXCID6031049","315685596","  764","C00242"," 16235","DB02377","Guanine"
+"histamine and unresolvable, unidentified isomers","histamine and unresolvable, unidentified isomers",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"histidinol and unresolvable, unidentified isomers","histidinol and unresolvable, unidentified isomers",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"homovanillic acid","homovanillic acid","HMDB0000118","C05582","belongs to the class of organic compounds known as methoxyphenols. Methoxyphenols are compounds containing a methoxy group attached to the benzene ring of a phenol moiety.","Organic compounds","Benzenoids","Phenols","Methoxyphenols","306-08-1","DTXSID5059791","DTXCID4038219","315687911"," 1738","C05582","545959",NA,"Homovanillic acid"
+"hypoxanthine","hypoxanthine","HMDB0000157",NA,NA,NA,NA,NA,NA,"68-94-0","DTXSID8045983","DTXCID6025983","315681605","  790","C00262"," 17368","DB04076","Hypoxanthine"
+"inosine","inosine","HMDB0000195",NA,NA,NA,NA,NA,NA,"58-63-9","DTXSID2045993","DTXCID0025993","315681612"," 6021","C00294"," 17596","DB04335","Inosine"
+"isoleucine","isoleucine",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"leucine/norleucine","leucine/norleucine",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"malonic acid","malonic acid",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"N-acetyl-hexosamine","n-acetyl-hexosamine",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"N-acetyl-phenylalanine","n-acetyl-phenylalanine",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"nicotinamide","nicotinamide",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"pantothenic acid","pantothenic acid","HMDB0000210","C00864","belongs to the class of organic compounds known as secondary alcohols. Secondary alcohols are compounds containing a secondary alcohol functional group, with the general structure HOC(R)(R') (R,R'=alkyl, aryl).","Organic compounds","Organic oxygen compounds","Organooxygen compounds","Alcohols and polyols","79-83-4","DTXSID9023417","DTXCID203417","315673987"," 6613","C00864"," 46905",NA,"Pantothenic acid"
+"phenylalanine","phenylalanine",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"pipecolic acid","pipecolic acid","HMDB0000070","C00408","belongs to the class of organic compounds known as alpha amino acids. These are amino acids in which the amino group is attached to the carbon atom immediately adjacent to the carboxylate group (alpha carbon).","Organic compounds","Organic acids and derivatives","Carboxylic acids and derivatives","Amino acids, peptides, and analogues","535-75-1",NA,NA,"  8143939",NA,NA," 17964",NA,"Pipecolic acid"
+"proline and unresolvable, unidentified isomers","proline and unresolvable, unidentified isomers",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"pyridoxine","pyridoxine","HMDB0000239",NA,NA,NA,NA,NA,NA,"65-23-6","DTXSID4023541","DTXCID903541","315674093"," 1054","C00314"," 16709","DB00165","Pyridoxine"
+"sarcosine","sarcosine",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"threonine","threonine",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"thymidine","thymidine","HMDB0000273","C00214","belongs to the class of organic compounds known as pyrimidine 2'-deoxyribonucleosides. Pyrimidine 2'-deoxyribonucleosides are compounds consisting of a pyrimidine linked to a ribose which lacks a hydroxyl group at position 2.","Organic compounds","Nucleosides, nucleotides, and analogues","Pyrimidine nucleosides","Pyrimidine 2'-deoxyribonucleosides","50-89-5","DTXSID5023661","DTXCID703661","315674190"," 5789","C00214"," 17748","DB04485","Thymidine"
+"trigonelline and unresolvable, unidentified isomers","trigonelline and unresolvable, unidentified isomers",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"tyrosine","tyrosine",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"unidentified isomer of 3-hydroxyanthranilic acid","unidentified isomer of-hydroxyanthranilic acid",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"unidentified isomer of cytidine","unidentified isomer of cytidine",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"unidentified isomer of nicotine","unidentified isomer of nicotine",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"unidentified isomer of nicotinic acid","unidentified isomer of nicotinic acid",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"unidentified isomer of valine","unidentified isomer of valine",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"uracil","uracil","HMDB0000300","C00106","belongs to the class of organic compounds known as pyrimidones. Pyrimidones are compounds that contain a pyrimidine ring, which bears a ketone. Pyrimidine is a 6-membered ring consisting of four carbon atoms and two nitrogen centers at the 1- and 3- ring positions.","Organic compounds","Organoheterocyclic compounds","Diazines","Pyrimidines and pyrimidine derivatives","66-22-8","DTXSID4021424","DTXCID101424","315672314"," 1174","C00106"," 17568","DB03419","Uracil"
+"vanillic acid","vanillic acid","HMDB0000484",NA,NA,NA,NA,NA,NA,"121-34-6","DTXSID6059522","DTXCID1033668","315687642"," 8468","C06672"," 30816",NA,"Vanillic acid"
+"xanthine","xanthine","HMDB0000292","C00385","belongs to the class of organic compounds known as xanthines. These are purine derivatives with a ketone group conjugated at carbons 2 and 6 of the purine moiety.","Organic compounds","Organoheterocyclic compounds","Imidazopyrimidines","Purines and purine derivatives","69-89-6","DTXSID4035120","DTXCID2015120","315677425"," 1188","C00385"," 48517","DB02134","Xanthine"
