@@ -1,0 +1,40 @@
+"","Group","Class","Abundance(%)"
+"1","MS.nonster.Brachy","Azoles",0.188234879665423
+"2","MS.nonster.Brachy","Benzene and substituted derivatives",0.0032270677152192
+"3","MS.nonster.Brachy","Carboxylic acids and derivatives",1.57329037719768
+"4","MS.nonster.Brachy","Diazines",0.285832142843279
+"5","MS.nonster.Brachy","Fatty Acyls",0.000625260683384868
+"6","MS.nonster.Brachy","Imidazopyrimidines",17.4595235020648
+"7","MS.nonster.Brachy","Organonitrogen compounds",3.45600277113272
+"8","MS.nonster.Brachy","Organooxygen compounds",1.42714798888523
+"9","MS.nonster.Brachy","Purine nucleosides",0.720094887388136
+"10","MS.nonster.Brachy","Pyridines and derivatives",0.166592910719996
+"11","MS.nonster.Brachy","Pyrimidine nucleosides",1.33437922681968
+"12","MS.nonster.Brachy","Unknown",73.3791322338825
+"13","MS.nonster.Brachy","others",0.00591675100191882
+"14","MS.ster.Brachy","Azoles",0.282885187430342
+"15","MS.ster.Brachy","Benzene and substituted derivatives",0
+"16","MS.ster.Brachy","Carboxylic acids and derivatives",0.455411091998944
+"17","MS.ster.Brachy","Diazines",0.154117112876392
+"18","MS.ster.Brachy","Fatty Acyls",0
+"19","MS.ster.Brachy","Imidazopyrimidines",47.7947011917982
+"20","MS.ster.Brachy","Organonitrogen compounds",5.17190079019642
+"21","MS.ster.Brachy","Organooxygen compounds",0.203557294003227
+"22","MS.ster.Brachy","Purine nucleosides",0.000751513185156935
+"23","MS.ster.Brachy","Pyridines and derivatives",0.184946882721822
+"24","MS.ster.Brachy","Pyrimidine nucleosides",0.491663008302971
+"25","MS.ster.Brachy","Unknown",45.2600659274865
+"26","MS.ster.Brachy","others",0
+"27","MSSuc.ster.Brachy","Azoles",0.0073993841837028
+"28","MSSuc.ster.Brachy","Benzene and substituted derivatives",0.0436194328488724
+"29","MSSuc.ster.Brachy","Carboxylic acids and derivatives",1.09073042262802
+"30","MSSuc.ster.Brachy","Diazines",0.0504725739653415
+"31","MSSuc.ster.Brachy","Fatty Acyls",0.251115487570608
+"32","MSSuc.ster.Brachy","Imidazopyrimidines",13.0776378274429
+"33","MSSuc.ster.Brachy","Organonitrogen compounds",0.271546482634834
+"34","MSSuc.ster.Brachy","Organooxygen compounds",0.0873686513201219
+"35","MSSuc.ster.Brachy","Purine nucleosides",0.597728763987184
+"36","MSSuc.ster.Brachy","Pyridines and derivatives",0.197096441274701
+"37","MSSuc.ster.Brachy","Pyrimidine nucleosides",0.10020580697417
+"38","MSSuc.ster.Brachy","Unknown",84.1936636072108
+"39","MSSuc.ster.Brachy","others",0.0314151179587584

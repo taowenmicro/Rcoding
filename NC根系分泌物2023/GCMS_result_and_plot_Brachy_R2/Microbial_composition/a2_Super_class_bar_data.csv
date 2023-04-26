@@ -1,0 +1,28 @@
+"","Group","Super_class","Abundance(%)"
+"1","MS.nonster.Brachy","Alkaloids and derivatives",0.349963497923504
+"2","MS.nonster.Brachy","Benzenoids",0.0032270677152192
+"3","MS.nonster.Brachy","Lipids and lipid-like molecules",0.000625260683384868
+"4","MS.nonster.Brachy","Nucleosides, nucleotides, and analogues",2.05447411420781
+"5","MS.nonster.Brachy","Organic acids and derivatives",1.57329037719768
+"6","MS.nonster.Brachy","Organic nitrogen compounds",3.45600277113272
+"7","MS.nonster.Brachy","Organic oxygen compounds",1.42714798888523
+"8","MS.nonster.Brachy","Organoheterocyclic compounds",18.1061001862954
+"9","MS.nonster.Brachy","Unknown",73.029168735959
+"10","MS.ster.Brachy","Alkaloids and derivatives",0.441532907002861
+"11","MS.ster.Brachy","Benzenoids",0
+"12","MS.ster.Brachy","Lipids and lipid-like molecules",0
+"13","MS.ster.Brachy","Nucleosides, nucleotides, and analogues",0.492414521488128
+"14","MS.ster.Brachy","Organic acids and derivatives",0.455411091998944
+"15","MS.ster.Brachy","Organic nitrogen compounds",5.17190079019642
+"16","MS.ster.Brachy","Organic oxygen compounds",0.203557294003227
+"17","MS.ster.Brachy","Organoheterocyclic compounds",48.4166503748268
+"18","MS.ster.Brachy","Unknown",44.8185330204836
+"19","MSSuc.ster.Brachy","Alkaloids and derivatives",0.0120281494095429
+"20","MSSuc.ster.Brachy","Benzenoids",0.0436194328488724
+"21","MSSuc.ster.Brachy","Lipids and lipid-like molecules",0.251115487570608
+"22","MSSuc.ster.Brachy","Nucleosides, nucleotides, and analogues",0.697934570961354
+"23","MSSuc.ster.Brachy","Organic acids and derivatives",1.09073042262802
+"24","MSSuc.ster.Brachy","Organic nitrogen compounds",0.271546482634834
+"25","MSSuc.ster.Brachy","Organic oxygen compounds",0.0873686513201219
+"26","MSSuc.ster.Brachy","Organoheterocyclic compounds",13.3640213448254
+"27","MSSuc.ster.Brachy","Unknown",84.1816354578013

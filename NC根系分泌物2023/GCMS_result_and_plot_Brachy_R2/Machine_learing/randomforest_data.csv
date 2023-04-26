@@ -1,0 +1,41 @@
+,MS.nonster.Brachy,MS.ster.Brachy,MSSuc.ster.Brachy,MeanDecreaseAccuracy,MeanDecreaseGini,id,iid
+glyceraldehyde or lactic acid,3.87,3.44,2.31,4.29,0.31,glyceraldehyde or lactic acid,1
+N-methyl-glutamic acid,2.63,3.34,3.79,4.2,0.26,N-methyl-glutamic acid,2
+cytidine,3.58,3.12,3.33,4.04,0.19,cytidine,3
+taurine,2.35,2.94,3.28,3.63,0.28,taurine,4
+N-acetyl-phenylalanine,2.65,2.42,3.58,3.58,0.2,N-acetyl-phenylalanine,5
+phenylalanine,2.36,1.97,3.4,3.52,0.19,phenylalanine,6
+kynurenine,3.48,1.84,2.7,3.48,0.17,kynurenine,7
+tyramine,1.26,2.49,2.91,3.24,0.16,tyramine,8
+quinic acid,2.96,2.26,2.1,3.23,0.12,quinic acid,9
+2- or 4-hydroxybenzoic acid,3.15,2.12,2.55,3.17,0.16,2- or 4-hydroxybenzoic acid,10
+malic acid and/or isomers,1.61,2.95,1.97,3.17,0.15,malic acid and/or isomers,11
+uronic acid,2.87,2.22,1.85,3.17,0.12,uronic acid,12
+trisaccharide (ex. raffinose),2.96,2.5,1.67,3.15,0.2,trisaccharide (ex. raffinose),13
+threonine/allothreonine/homoserine,1.74,3.36,1.81,3.12,0.13,threonine/allothreonine/homoserine,14
+citrulline,2.43,2.95,2.07,3.08,0.1,citrulline,15
+2-deoxyguanosine,2.95,1.55,2.36,3.07,0.14,2-deoxyguanosine,16
+azelaic acid,1.94,2.19,3.24,3.06,0.19,azelaic acid,17
+proline,2.7,2.69,1.46,3.02,0.2,proline,18
+histamine,1.42,2.43,2.88,3.01,0.13,histamine,19
+glyceric acid and/or isomers,3.12,2.18,1.53,2.93,0.16,glyceric acid and/or isomers,20
+adenine,1.58,2.73,1.84,2.89,0.09,adenine,21
+adenosine,2.69,2.1,1.72,2.81,0.1,adenosine,22
+2-hydroxypyridine and/or isomers,1,1.88,2.74,2.76,0.1,2-hydroxypyridine and/or isomers,23
+thymine,2.91,1.97,1.4,2.76,0.16,thymine,24
+3-hydroxybenzoic acid,2.11,2.67,1.34,2.73,0.09,3-hydroxybenzoic acid,25
+5-methylcytosine,1.92,1.74,2.73,2.69,0.14,5-methylcytosine,26
+3-amino-4-hydroxybenzoic acid,1.64,2.77,2.43,2.68,0.14,3-amino-4-hydroxybenzoic acid,27
+N-acetylputrescine and/or isomers,2.63,2.48,-1,2.68,0.08,N-acetylputrescine and/or isomers,28
+histidine,1.84,2.69,2.1,2.65,0.13,histidine,29
+hydroxybutyric acid,1,2.21,2.76,2.65,0.13,hydroxybutyric acid,30
+3-methyladenine and/or isomers,2.12,2.58,1.42,2.64,0.13,3-methyladenine and/or isomers,31
+glutamic acid,1.16,0,2.76,2.64,0.09,glutamic acid,32
+trigonelline,1.27,2.22,2.5,2.59,0.09,trigonelline,33
+2,3-cyclic AMP,-1.27,2.29,2.73,2.57,0.11,2,3-cyclic AMP,34
+N-alpha-acetyl-lysine,1.61,2.43,1.67,2.56,0.07,N-alpha-acetyl-lysine,35
+N-acetyl-serine,1.84,2.65,1,2.55,0.09,N-acetyl-serine,36
+glutamic acid2,1.98,2.57,1.42,2.54,0.1,glutamic acid2,37
+guanine,1.61,1.51,2.52,2.53,0.11,guanine,38
+riboflavin,1,2.67,2.15,2.49,0.09,riboflavin,39
+nicotinic acid,1.94,1.88,-0.11,2.48,0.1,nicotinic acid,40

@@ -1,0 +1,40 @@
+"","Group","Sub_class","Abundance(%)"
+"1","MS.nonster.Brachy","Alcohols and polyols",1.42714798888523
+"2","MS.nonster.Brachy","Amines",3.45600277113272
+"3","MS.nonster.Brachy","Amino acids, peptides, and analogues",1.57329037719768
+"4","MS.nonster.Brachy","Benzoic acids and derivatives",0.0032270677152192
+"5","MS.nonster.Brachy","Fatty acids and conjugates",0.000625260683384868
+"6","MS.nonster.Brachy","Imidazoles",0.188234879665423
+"7","MS.nonster.Brachy","Purines and purine derivatives",17.4595235020648
+"8","MS.nonster.Brachy","Pyridinecarboxylic acids and derivatives",0.140254139221659
+"9","MS.nonster.Brachy","Pyridoxamines",0.0263387714983367
+"10","MS.nonster.Brachy","Pyrimidine 2'-deoxyribonucleosides",0.100244396528043
+"11","MS.nonster.Brachy","Pyrimidines and pyrimidine derivatives",0.285832142843279
+"12","MS.nonster.Brachy","Unknown",75.333512644354
+"13","MS.nonster.Brachy","others",0.00576605821015109
+"14","MS.ster.Brachy","Alcohols and polyols",0.203557294003227
+"15","MS.ster.Brachy","Amines",5.17190079019642
+"16","MS.ster.Brachy","Amino acids, peptides, and analogues",0.455411091998944
+"17","MS.ster.Brachy","Benzoic acids and derivatives",0
+"18","MS.ster.Brachy","Fatty acids and conjugates",0
+"19","MS.ster.Brachy","Imidazoles",0.282885187430342
+"20","MS.ster.Brachy","Purines and purine derivatives",47.7947011917982
+"21","MS.ster.Brachy","Pyridinecarboxylic acids and derivatives",0.184946882721822
+"22","MS.ster.Brachy","Pyridoxamines",0
+"23","MS.ster.Brachy","Pyrimidine 2'-deoxyribonucleosides",0.205647220440353
+"24","MS.ster.Brachy","Pyrimidines and pyrimidine derivatives",0.154117112876392
+"25","MS.ster.Brachy","Unknown",45.5468332285343
+"26","MS.ster.Brachy","others",0
+"27","MSSuc.ster.Brachy","Alcohols and polyols",0.0873686513201219
+"28","MSSuc.ster.Brachy","Amines",0.271546482634834
+"29","MSSuc.ster.Brachy","Amino acids, peptides, and analogues",1.09073042262802
+"30","MSSuc.ster.Brachy","Benzoic acids and derivatives",0.0436194328488724
+"31","MSSuc.ster.Brachy","Fatty acids and conjugates",0.251115487570608
+"32","MSSuc.ster.Brachy","Imidazoles",0.0073993841837028
+"33","MSSuc.ster.Brachy","Purines and purine derivatives",13.0776378274429
+"34","MSSuc.ster.Brachy","Pyridinecarboxylic acids and derivatives",0.181055130336437
+"35","MSSuc.ster.Brachy","Pyridoxamines",0.0160413109382634
+"36","MSSuc.ster.Brachy","Pyrimidine 2'-deoxyribonucleosides",0.0107354194708363
+"37","MSSuc.ster.Brachy","Pyrimidines and pyrimidine derivatives",0.0504725739653415
+"38","MSSuc.ster.Brachy","Unknown",84.9091538633533
+"39","MSSuc.ster.Brachy","others",0.0031240133067472
