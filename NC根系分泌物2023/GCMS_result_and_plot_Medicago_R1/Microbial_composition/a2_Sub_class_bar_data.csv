@@ -1,0 +1,55 @@
+"","Group","Sub_class","Abundance(%)"
+"1","Medicago_00h","Alcohols and polyols",0.994112700432875
+"2","Medicago_00h","Amino acids, peptides, and analogues",4.99913212879327
+"3","Medicago_00h","Fatty acids and conjugates",0.0278684911181634
+"4","Medicago_00h","Methoxyphenols",0.00580238123939941
+"5","Medicago_00h","Purines and purine derivatives",37.4492847956766
+"6","Medicago_00h","Pyridinecarboxylic acids and derivatives",0.00924614221639156
+"7","Medicago_00h","Pyrimidine 2'-deoxyribonucleosides",0.0154171199342475
+"8","Medicago_00h","Pyrimidines and pyrimidine derivatives",0.0214293992935212
+"9","Medicago_00h","Unknown",56.4777068412955
+"10","Medicago_02h","Alcohols and polyols",1.94393539305959
+"11","Medicago_02h","Amino acids, peptides, and analogues",10.4852115809522
+"12","Medicago_02h","Fatty acids and conjugates",0.00119450489491147
+"13","Medicago_02h","Methoxyphenols",0.00262071230844158
+"14","Medicago_02h","Purines and purine derivatives",34.4196214139727
+"15","Medicago_02h","Pyridinecarboxylic acids and derivatives",0.00504276585181765
+"16","Medicago_02h","Pyrimidine 2'-deoxyribonucleosides",0.676566569878567
+"17","Medicago_02h","Pyrimidines and pyrimidine derivatives",1.11518643341491
+"18","Medicago_02h","Unknown",51.3506206256669
+"19","Medicago_04h","Alcohols and polyols",0.320093344807052
+"20","Medicago_04h","Amino acids, peptides, and analogues",6.04577197612784
+"21","Medicago_04h","Fatty acids and conjugates",0.0441941099132065
+"22","Medicago_04h","Methoxyphenols",0.00306349656830092
+"23","Medicago_04h","Purines and purine derivatives",36.5399000621838
+"24","Medicago_04h","Pyridinecarboxylic acids and derivatives",0.00514396875679957
+"25","Medicago_04h","Pyrimidine 2'-deoxyribonucleosides",1.01035487587819
+"26","Medicago_04h","Pyrimidines and pyrimidine derivatives",1.37155545979252
+"27","Medicago_04h","Unknown",54.6599227059723
+"28","Medicago_1d","Alcohols and polyols",0.652838358211003
+"29","Medicago_1d","Amino acids, peptides, and analogues",12.7107152793602
+"30","Medicago_1d","Fatty acids and conjugates",0.107746194005497
+"31","Medicago_1d","Methoxyphenols",0.00662626622154588
+"32","Medicago_1d","Purines and purine derivatives",35.9590321612015
+"33","Medicago_1d","Pyridinecarboxylic acids and derivatives",0.00480096467294561
+"34","Medicago_1d","Pyrimidine 2'-deoxyribonucleosides",0.938710449236436
+"35","Medicago_1d","Pyrimidines and pyrimidine derivatives",2.20657587572311
+"36","Medicago_1d","Unknown",47.4129544513678
+"37","Medicago_4d","Alcohols and polyols",2.86326247687466
+"38","Medicago_4d","Amino acids, peptides, and analogues",16.0775409793373
+"39","Medicago_4d","Fatty acids and conjugates",0.76019122788684
+"40","Medicago_4d","Methoxyphenols",0.0103640008322808
+"41","Medicago_4d","Purines and purine derivatives",14.8979264848206
+"42","Medicago_4d","Pyridinecarboxylic acids and derivatives",0.00931653882251217
+"43","Medicago_4d","Pyrimidine 2'-deoxyribonucleosides",0.635466314284442
+"44","Medicago_4d","Pyrimidines and pyrimidine derivatives",1.22896879621164
+"45","Medicago_4d","Unknown",63.5169631809297
+"46","Medicago_p5h","Alcohols and polyols",1.66674334422759
+"47","Medicago_p5h","Amino acids, peptides, and analogues",4.03593307865323
+"48","Medicago_p5h","Fatty acids and conjugates",0.019391914679394
+"49","Medicago_p5h","Methoxyphenols",0.00409347491852234
+"50","Medicago_p5h","Purines and purine derivatives",50.0058589427714
+"51","Medicago_p5h","Pyridinecarboxylic acids and derivatives",0.00884601536825334
+"52","Medicago_p5h","Pyrimidine 2'-deoxyribonucleosides",0.159336229609881
+"53","Medicago_p5h","Pyrimidines and pyrimidine derivatives",0.229302066807776
+"54","Medicago_p5h","Unknown",43.870494932964

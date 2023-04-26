@@ -1,0 +1,43 @@
+"","Group","Super_class","Abundance(%)"
+"1","Medicago_00h","Benzenoids",0.00580238123939941
+"2","Medicago_00h","Lipids and lipid-like molecules",0.0278684911181634
+"3","Medicago_00h","Nucleosides, nucleotides, and analogues",0.0154171199342475
+"4","Medicago_00h","Organic acids and derivatives",4.99913212879327
+"5","Medicago_00h","Organic oxygen compounds",0.994112700432875
+"6","Medicago_00h","Organoheterocyclic compounds",37.4799603371865
+"7","Medicago_00h","Unknown",56.4777068412955
+"8","Medicago_02h","Benzenoids",0.00262071230844158
+"9","Medicago_02h","Lipids and lipid-like molecules",0.00119450489491147
+"10","Medicago_02h","Nucleosides, nucleotides, and analogues",0.676566569878567
+"11","Medicago_02h","Organic acids and derivatives",10.4852115809522
+"12","Medicago_02h","Organic oxygen compounds",1.94393539305959
+"13","Medicago_02h","Organoheterocyclic compounds",35.5398506132395
+"14","Medicago_02h","Unknown",51.3506206256669
+"15","Medicago_04h","Benzenoids",0.00306349656830092
+"16","Medicago_04h","Lipids and lipid-like molecules",0.0441941099132065
+"17","Medicago_04h","Nucleosides, nucleotides, and analogues",1.01035487587819
+"18","Medicago_04h","Organic acids and derivatives",6.04577197612784
+"19","Medicago_04h","Organic oxygen compounds",0.320093344807052
+"20","Medicago_04h","Organoheterocyclic compounds",37.9165994907331
+"21","Medicago_04h","Unknown",54.6599227059723
+"22","Medicago_1d","Benzenoids",0.00662626622154588
+"23","Medicago_1d","Lipids and lipid-like molecules",0.107746194005497
+"24","Medicago_1d","Nucleosides, nucleotides, and analogues",0.938710449236436
+"25","Medicago_1d","Organic acids and derivatives",12.7107152793602
+"26","Medicago_1d","Organic oxygen compounds",0.652838358211003
+"27","Medicago_1d","Organoheterocyclic compounds",38.1704090015976
+"28","Medicago_1d","Unknown",47.4129544513678
+"29","Medicago_4d","Benzenoids",0.0103640008322808
+"30","Medicago_4d","Lipids and lipid-like molecules",0.76019122788684
+"31","Medicago_4d","Nucleosides, nucleotides, and analogues",0.635466314284442
+"32","Medicago_4d","Organic acids and derivatives",16.0775409793373
+"33","Medicago_4d","Organic oxygen compounds",2.86326247687466
+"34","Medicago_4d","Organoheterocyclic compounds",16.1362118198548
+"35","Medicago_4d","Unknown",63.5169631809297
+"36","Medicago_p5h","Benzenoids",0.00409347491852234
+"37","Medicago_p5h","Lipids and lipid-like molecules",0.019391914679394
+"38","Medicago_p5h","Nucleosides, nucleotides, and analogues",0.159336229609881
+"39","Medicago_p5h","Organic acids and derivatives",4.03593307865323
+"40","Medicago_p5h","Organic oxygen compounds",1.66674334422759
+"41","Medicago_p5h","Organoheterocyclic compounds",50.2440070249474
+"42","Medicago_p5h","Unknown",43.870494932964
