@@ -1,0 +1,65 @@
+"","Group","Super_class","Abundance(%)"
+"1","exudate.EOD.Arabidopsis","Alkaloids and derivatives",0.109305475073813
+"2","exudate.EOD.Arabidopsis","Benzenoids",0.0893315577676137
+"3","exudate.EOD.Arabidopsis","Nucleosides, nucleotides, and analogues",2.13633771306721
+"4","exudate.EOD.Arabidopsis","Organic acids and derivatives",23.3101456097795
+"5","exudate.EOD.Arabidopsis","Organic nitrogen compounds",0.0190122086653422
+"6","exudate.EOD.Arabidopsis","Organic oxygen compounds",0.893912668366773
+"7","exudate.EOD.Arabidopsis","Organoheterocyclic compounds",30.5068525474412
+"8","exudate.EOD.Arabidopsis","Unknown",42.9351022198386
+"9","exudate.EOD.Brachy","Alkaloids and derivatives",0.0372571280222319
+"10","exudate.EOD.Brachy","Benzenoids",0.0148891495804033
+"11","exudate.EOD.Brachy","Nucleosides, nucleotides, and analogues",4.64818019987441
+"12","exudate.EOD.Brachy","Organic acids and derivatives",31.1333197586759
+"13","exudate.EOD.Brachy","Organic nitrogen compounds",1.53276269024685
+"14","exudate.EOD.Brachy","Organic oxygen compounds",0.738548347424039
+"15","exudate.EOD.Brachy","Organoheterocyclic compounds",52.2010181071323
+"16","exudate.EOD.Brachy","Unknown",9.69402461904389
+"17","exudate.EOD.Medicago","Alkaloids and derivatives",14.5265736969325
+"18","exudate.EOD.Medicago","Benzenoids",0.0290659018640924
+"19","exudate.EOD.Medicago","Nucleosides, nucleotides, and analogues",0.673103348375248
+"20","exudate.EOD.Medicago","Organic acids and derivatives",42.522324393771
+"21","exudate.EOD.Medicago","Organic nitrogen compounds",0.171785883598698
+"22","exudate.EOD.Medicago","Organic oxygen compounds",1.31441567364437
+"23","exudate.EOD.Medicago","Organoheterocyclic compounds",14.8984603486215
+"24","exudate.EOD.Medicago","Unknown",25.8642707531927
+"25","exudate.EOD.TxCtrl","Alkaloids and derivatives",2.63098376669569
+"26","exudate.EOD.TxCtrl","Benzenoids",0.318020079354316
+"27","exudate.EOD.TxCtrl","Nucleosides, nucleotides, and analogues",0.068241151491421
+"28","exudate.EOD.TxCtrl","Organic acids and derivatives",73.0408155591824
+"29","exudate.EOD.TxCtrl","Organic nitrogen compounds",0.0558033779028064
+"30","exudate.EOD.TxCtrl","Organic oxygen compounds",0.0993272980075824
+"31","exudate.EOD.TxCtrl","Organoheterocyclic compounds",5.80792639314615
+"32","exudate.EOD.TxCtrl","Unknown",17.9788823742196
+"33","exudate.EON.Arabidopsis","Alkaloids and derivatives",0.0438531038935112
+"34","exudate.EON.Arabidopsis","Benzenoids",0.0673141338414732
+"35","exudate.EON.Arabidopsis","Nucleosides, nucleotides, and analogues",1.23710254330924
+"36","exudate.EON.Arabidopsis","Organic acids and derivatives",32.3388871475986
+"37","exudate.EON.Arabidopsis","Organic nitrogen compounds",0.0162818725471208
+"38","exudate.EON.Arabidopsis","Organic oxygen compounds",0.570363358927287
+"39","exudate.EON.Arabidopsis","Organoheterocyclic compounds",30.1587033381726
+"40","exudate.EON.Arabidopsis","Unknown",35.5674945017102
+"41","exudate.EON.Brachy","Alkaloids and derivatives",0.0295144611165159
+"42","exudate.EON.Brachy","Benzenoids",0.0396541573750669
+"43","exudate.EON.Brachy","Nucleosides, nucleotides, and analogues",1.81396058682377
+"44","exudate.EON.Brachy","Organic acids and derivatives",50.675036225827
+"45","exudate.EON.Brachy","Organic nitrogen compounds",1.73099850698846
+"46","exudate.EON.Brachy","Organic oxygen compounds",0.213321288394643
+"47","exudate.EON.Brachy","Organoheterocyclic compounds",33.2712902735152
+"48","exudate.EON.Brachy","Unknown",12.2262244999593
+"49","exudate.EON.Medicago","Alkaloids and derivatives",7.33829480678036
+"50","exudate.EON.Medicago","Benzenoids",0.0126540915029535
+"51","exudate.EON.Medicago","Nucleosides, nucleotides, and analogues",0.581271250965896
+"52","exudate.EON.Medicago","Organic acids and derivatives",34.6990297752246
+"53","exudate.EON.Medicago","Organic nitrogen compounds",0.160374347896674
+"54","exudate.EON.Medicago","Organic oxygen compounds",0.874583813799361
+"55","exudate.EON.Medicago","Organoheterocyclic compounds",16.7209478181065
+"56","exudate.EON.Medicago","Unknown",39.6128440957237
+"57","exudate.EON.TxCtrl","Alkaloids and derivatives",1.22003404165257
+"58","exudate.EON.TxCtrl","Benzenoids",0.195776712335191
+"59","exudate.EON.TxCtrl","Nucleosides, nucleotides, and analogues",0.188523319409908
+"60","exudate.EON.TxCtrl","Organic acids and derivatives",71.0127584098334
+"61","exudate.EON.TxCtrl","Organic nitrogen compounds",0.0165808431893562
+"62","exudate.EON.TxCtrl","Organic oxygen compounds",0.111293386432608
+"63","exudate.EON.TxCtrl","Organoheterocyclic compounds",5.26320332348366
+"64","exudate.EON.TxCtrl","Unknown",21.9918299636633

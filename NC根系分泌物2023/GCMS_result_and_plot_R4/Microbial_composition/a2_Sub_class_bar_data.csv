@@ -1,0 +1,89 @@
+"","Group","Sub_class","Abundance(%)"
+"1","exudate.EOD.Arabidopsis","Alcohols and polyols",0.893912668366773
+"2","exudate.EOD.Arabidopsis","Amines",0.0190122086653422
+"3","exudate.EOD.Arabidopsis","Amino acids, peptides, and analogues",23.2412961467107
+"4","exudate.EOD.Arabidopsis","Benzoic acids and derivatives",0.0893315577676137
+"5","exudate.EOD.Arabidopsis","Dicarboxylic acids and derivatives",0.068849463068774
+"6","exudate.EOD.Arabidopsis","Imidazoles",0.0802220862838278
+"7","exudate.EOD.Arabidopsis","Indolyl carboxylic acids and derivatives",0.0470550858964218
+"8","exudate.EOD.Arabidopsis","Purines and purine derivatives",29.9910396266126
+"9","exudate.EOD.Arabidopsis","Pyrimidine 2'-deoxyribonucleosides",0.013418467076093
+"10","exudate.EOD.Arabidopsis","Pyrimidines and pyrimidine derivatives",0.388535748648292
+"11","exudate.EOD.Arabidopsis","Unknown",45.1673269409035
+"12","exudate.EOD.Brachy","Alcohols and polyols",0.738548347424039
+"13","exudate.EOD.Brachy","Amines",1.53276269024685
+"14","exudate.EOD.Brachy","Amino acids, peptides, and analogues",31.1294175969516
+"15","exudate.EOD.Brachy","Benzoic acids and derivatives",0.0148891495804033
+"16","exudate.EOD.Brachy","Dicarboxylic acids and derivatives",0.00390216172424032
+"17","exudate.EOD.Brachy","Imidazoles",0.133689847359473
+"18","exudate.EOD.Brachy","Indolyl carboxylic acids and derivatives",1.74355893933845
+"19","exudate.EOD.Brachy","Purines and purine derivatives",50.3079662603827
+"20","exudate.EOD.Brachy","Pyrimidine 2'-deoxyribonucleosides",0.0459383283352705
+"21","exudate.EOD.Brachy","Pyrimidines and pyrimidine derivatives",0.0158030600516487
+"22","exudate.EOD.Brachy","Unknown",14.3335236186053
+"23","exudate.EOD.Medicago","Alcohols and polyols",1.31441567364437
+"24","exudate.EOD.Medicago","Amines",0.171785883598698
+"25","exudate.EOD.Medicago","Amino acids, peptides, and analogues",42.5146384180283
+"26","exudate.EOD.Medicago","Benzoic acids and derivatives",0.0290659018640924
+"27","exudate.EOD.Medicago","Dicarboxylic acids and derivatives",0.00768597574263153
+"28","exudate.EOD.Medicago","Imidazoles",0.0938511600668881
+"29","exudate.EOD.Medicago","Indolyl carboxylic acids and derivatives",0.0180529658534899
+"30","exudate.EOD.Medicago","Purines and purine derivatives",14.7289501382137
+"31","exudate.EOD.Medicago","Pyrimidine 2'-deoxyribonucleosides",0.0297462346374198
+"32","exudate.EOD.Medicago","Pyrimidines and pyrimidine derivatives",0.0576060844873495
+"33","exudate.EOD.Medicago","Unknown",41.034201563863
+"34","exudate.EOD.TxCtrl","Alcohols and polyols",0.0993272980075824
+"35","exudate.EOD.TxCtrl","Amines",0.0558033779028064
+"36","exudate.EOD.TxCtrl","Amino acids, peptides, and analogues",73.0304552986276
+"37","exudate.EOD.TxCtrl","Benzoic acids and derivatives",0.318020079354316
+"38","exudate.EOD.TxCtrl","Dicarboxylic acids and derivatives",0.010360260554823
+"39","exudate.EOD.TxCtrl","Imidazoles",0.00559586006918613
+"40","exudate.EOD.TxCtrl","Indolyl carboxylic acids and derivatives",0.0582776384497866
+"41","exudate.EOD.TxCtrl","Purines and purine derivatives",5.66807235783808
+"42","exudate.EOD.TxCtrl","Pyrimidine 2'-deoxyribonucleosides",0
+"43","exudate.EOD.TxCtrl","Pyrimidines and pyrimidine derivatives",0.0759805367890989
+"44","exudate.EOD.TxCtrl","Unknown",20.6781072924067
+"45","exudate.EON.Arabidopsis","Alcohols and polyols",0.570363358927287
+"46","exudate.EON.Arabidopsis","Amines",0.0162818725471208
+"47","exudate.EON.Arabidopsis","Amino acids, peptides, and analogues",32.2749316070737
+"48","exudate.EON.Arabidopsis","Benzoic acids and derivatives",0.0673141338414732
+"49","exudate.EON.Arabidopsis","Dicarboxylic acids and derivatives",0.0639555405249201
+"50","exudate.EON.Arabidopsis","Imidazoles",0.0320820310887445
+"51","exudate.EON.Arabidopsis","Indolyl carboxylic acids and derivatives",0.0457051626378923
+"52","exudate.EON.Arabidopsis","Purines and purine derivatives",29.9905417227972
+"53","exudate.EON.Arabidopsis","Pyrimidine 2'-deoxyribonucleosides",0.011599656782663
+"54","exudate.EON.Arabidopsis","Pyrimidines and pyrimidine derivatives",0.0903744216487165
+"55","exudate.EON.Arabidopsis","Unknown",36.8368504921303
+"56","exudate.EON.Brachy","Alcohols and polyols",0.213321288394643
+"57","exudate.EON.Brachy","Amines",1.73099850698846
+"58","exudate.EON.Brachy","Amino acids, peptides, and analogues",50.6714724623664
+"59","exudate.EON.Brachy","Benzoic acids and derivatives",0.0396541573750669
+"60","exudate.EON.Brachy","Dicarboxylic acids and derivatives",0.00356376346061363
+"61","exudate.EON.Brachy","Imidazoles",0.148511514018156
+"62","exudate.EON.Brachy","Indolyl carboxylic acids and derivatives",1.19223698910017
+"63","exudate.EON.Brachy","Purines and purine derivatives",31.9025814121269
+"64","exudate.EON.Brachy","Pyrimidine 2'-deoxyribonucleosides",0.0311103961699088
+"65","exudate.EON.Brachy","Pyrimidines and pyrimidine derivatives",0.0279603582699783
+"66","exudate.EON.Brachy","Unknown",14.0385891517297
+"67","exudate.EON.Medicago","Alcohols and polyols",0.874583813799361
+"68","exudate.EON.Medicago","Amines",0.160374347896674
+"69","exudate.EON.Medicago","Amino acids, peptides, and analogues",34.6911831583346
+"70","exudate.EON.Medicago","Benzoic acids and derivatives",0.0126540915029535
+"71","exudate.EON.Medicago","Dicarboxylic acids and derivatives",0.00784661688992078
+"72","exudate.EON.Medicago","Imidazoles",0.0892413188216846
+"73","exudate.EON.Medicago","Indolyl carboxylic acids and derivatives",0.0157131089942214
+"74","exudate.EON.Medicago","Purines and purine derivatives",16.6016422594444
+"75","exudate.EON.Medicago","Pyrimidine 2'-deoxyribonucleosides",0.0323191366666637
+"76","exudate.EON.Medicago","Pyrimidines and pyrimidine derivatives",0.0143511308462127
+"77","exudate.EON.Medicago","Unknown",47.5000910168033
+"78","exudate.EON.TxCtrl","Alcohols and polyols",0.111293386432608
+"79","exudate.EON.TxCtrl","Amines",0.0165808431893562
+"80","exudate.EON.TxCtrl","Amino acids, peptides, and analogues",71.0088272801521
+"81","exudate.EON.TxCtrl","Benzoic acids and derivatives",0.195776712335191
+"82","exudate.EON.TxCtrl","Dicarboxylic acids and derivatives",0.00393112968134095
+"83","exudate.EON.TxCtrl","Imidazoles",0.00214400569760777
+"84","exudate.EON.TxCtrl","Indolyl carboxylic acids and derivatives",0.0356263928528376
+"85","exudate.EON.TxCtrl","Purines and purine derivatives",5.22007857701511
+"86","exudate.EON.TxCtrl","Pyrimidine 2'-deoxyribonucleosides",0
+"87","exudate.EON.TxCtrl","Pyrimidines and pyrimidine derivatives",0.00535434791810641
+"88","exudate.EON.TxCtrl","Unknown",23.4003873247257

@@ -1,0 +1,41 @@
+,exudate.EOD.Arabidopsis,exudate.EOD.Brachy,exudate.EOD.Medicago,exudate.EOD.TxCtrl,exudate.EON.Arabidopsis,exudate.EON.Brachy,exudate.EON.Medicago,exudate.EON.TxCtrl,MeanDecreaseAccuracy,MeanDecreaseGini,id,iid
+pyridoxine,5.28,3.2,4.69,3.38,4.26,8.24,-0.63,0.78,9.46,1.64,pyridoxine,1
+quinic acid,3.44,8.43,0.73,2.54,3.22,5.89,2.34,2.48,8.79,1.38,quinic acid,2
+deoxycarnitine,7.67,3.76,1.07,3.47,5.63,3.65,2.35,2,8.47,1.36,deoxycarnitine,3
+trans-cinnamic acid,1.49,4.13,0.85,3,8.28,4.31,0.22,3.18,7.92,1.37,trans-cinnamic acid,4
+glutamic acid,4.42,5.43,3.12,4.22,6.07,5.82,2.73,2.72,7.9,1.04,glutamic acid,5
+nicotinic acid and/or isonicotinic acid,8.2,3.23,0.33,1.57,4.83,2.59,1.74,1.57,7.84,1.08,nicotinic acid and/or isonicotinic acid,6
+5-methylthioadenosine,5.3,6.12,2.2,3.49,3.86,4.23,2.62,2.74,7.72,1.03,5-methylthioadenosine,7
+guanosine,2.19,4.81,3.08,4.68,0.38,4.02,2.21,2.78,7.6,0.93,guanosine,8
+glutamine,4.52,5.43,2.99,0.11,5.86,4.67,-0.56,4.85,7.56,1.16,glutamine,9
+histamine,3.09,4.92,2.91,2.03,3.65,5.86,2.37,3.78,7.07,0.82,histamine,10
+isoleucine,2.79,5.71,1.09,4.41,2.41,3.64,-0.52,3.69,7.06,0.87,isoleucine,11
+indole-3-acetic acid,3.46,4.76,1.27,2.96,3.02,5.35,1.9,1.45,6.47,0.77,indole-3-acetic acid,12
+cytosine,6.6,2.36,1.64,1.74,2.83,2.69,2.32,1.34,6.33,0.82,cytosine,13
+4-quinolinecarboxylic acid and isomers,4.78,2.47,1.5,3.4,3.53,2.36,1.95,2.37,6.31,0.78,4-quinolinecarboxylic acid and isomers,14
+adenosine and isomers,2.66,3.22,1.39,3.81,2.26,3.82,1.52,3.3,6.23,0.59,adenosine and isomers,15
+dihexose (ex. trehalose, melibiose),4.84,3.25,2.37,3.02,5.63,3.83,1.74,2.88,6.23,0.69,dihexose (ex. trehalose, melibiose),16
+histidinol,1.82,3.83,0.94,3.12,2.12,4.62,2.52,3.72,6.05,0.68,histidinol,17
+isomer of kynurenine,3.29,6.13,1.51,0.63,2.79,0.73,2.69,1.16,5.97,0.72,isomer of kynurenine,18
+3-methyladenine,5.16,3.3,2.37,1.86,2.21,1.87,1.35,2.86,5.93,0.76,3-methyladenine,19
+n-alpha-acetyl-asparagine,5.66,1.79,-0.33,1.9,2.61,2.08,-1.34,2.46,5.71,0.64,n-alpha-acetyl-asparagine,20
+phenylalanine,3,4.51,2.46,1.5,3.85,2.37,0.26,2.42,5.55,0.6,phenylalanine,21
+leucine and/or norleucine,2.46,4.46,-0.5,3.87,3.99,1.85,2.15,2.24,5.49,0.74,leucine and/or norleucine,22
+methyl indole-3-acetic acid,3.38,0,0.24,5.11,2.79,2.47,1,2.12,5.44,0.76,methyl indole-3-acetic acid,23
+hydroxycinnamic acid,4.09,3.27,0.58,-2.47,3.74,3.03,2.12,3.43,5.36,0.58,hydroxycinnamic acid,24
+trigonelline,-1.38,2.23,3.55,1.36,2.21,2.38,3.25,3.43,5.18,0.59,trigonelline,25
+threonine/allothreonine,0.78,4.72,1.64,2.25,1.89,3.43,-1.34,0,4.9,0.39,threonine/allothreonine,26
+4-guanidinobutanoic acid,3.7,1.98,1.67,0.82,3.47,1.65,2.34,-0.76,4.86,0.48,4-guanidinobutanoic acid,27
+fumaric acid,0.62,2.57,0.63,1.74,4.77,2.61,1.74,3.08,4.79,0.45,fumaric acid,28
+valine and/or norvaline,2.67,4.76,1.95,1.82,2.22,-0.4,1,1.29,4.78,0.65,valine and/or norvaline,29
+adenine,1,2.82,1,1.14,2.1,1.16,1.42,3.27,4.71,0.51,adenine,30
+histidine,1.34,2.48,1.27,2.63,2.12,1.75,0.73,0.41,4.44,0.37,histidine,31
+asparagine,1.7,2.38,0.65,2.41,1.92,2.89,2.15,2.73,4.4,0.57,asparagine,32
+guanine,1,3.23,1.95,3.73,2.02,2.86,-1.14,-0.95,4.37,0.59,guanine,33
+N-trimethyllysine,2.99,1.55,0.33,1.68,2.48,1.9,1.7,2.09,4.32,0.32,N-trimethyllysine,34
+dihexose (ex. sucrose, palatinose),-1.42,1,2.41,-1.7,1.3,2.19,0.82,4.75,4.3,0.47,dihexose (ex. sucrose, palatinose),35
+gluconic acid,1.59,1.93,-0.38,2.15,0.16,3.15,1.95,2.82,4.21,0.42,gluconic acid,36
+2,3-cyclic AMP,2.3,2.7,1.42,2.5,2.09,1.94,-1.5,2.13,4.05,0.37,2,3-cyclic AMP,37
+pantothenic acid,0,2.88,1.42,2.01,-1.39,3.32,1.42,1.41,4.04,0.28,pantothenic acid,38
+tyrosine,2.76,3.25,2.34,2.36,1.51,3.52,1.42,-0.5,3.97,0.29,tyrosine,39
+lysine,1.17,0.33,1,2.35,-1,3.1,2.46,2.19,3.96,0.3,lysine,40

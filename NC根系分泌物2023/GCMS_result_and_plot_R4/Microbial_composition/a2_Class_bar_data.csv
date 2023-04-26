@@ -1,0 +1,89 @@
+"","Group","Class","Abundance(%)"
+"1","exudate.EOD.Arabidopsis","Azoles",0.0802220862838278
+"2","exudate.EOD.Arabidopsis","Benzene and substituted derivatives",0.0893315577676137
+"3","exudate.EOD.Arabidopsis","Carboxylic acids and derivatives",23.3101456097795
+"4","exudate.EOD.Arabidopsis","Diazines",0.388535748648292
+"5","exudate.EOD.Arabidopsis","Imidazopyrimidines",29.9910396266126
+"6","exudate.EOD.Arabidopsis","Indoles and derivatives",0.0470550858964218
+"7","exudate.EOD.Arabidopsis","Organonitrogen compounds",0.0190122086653422
+"8","exudate.EOD.Arabidopsis","Organooxygen compounds",0.893912668366773
+"9","exudate.EOD.Arabidopsis","Purine nucleosides",0.239826252996232
+"10","exudate.EOD.Arabidopsis","Pyrimidine nucleosides",1.89651146007098
+"11","exudate.EOD.Arabidopsis","Unknown",43.0444076949124
+"12","exudate.EOD.Brachy","Azoles",0.133689847359473
+"13","exudate.EOD.Brachy","Benzene and substituted derivatives",0.0148891495804033
+"14","exudate.EOD.Brachy","Carboxylic acids and derivatives",31.1333197586759
+"15","exudate.EOD.Brachy","Diazines",0.0158030600516487
+"16","exudate.EOD.Brachy","Imidazopyrimidines",50.3079662603827
+"17","exudate.EOD.Brachy","Indoles and derivatives",1.74355893933845
+"18","exudate.EOD.Brachy","Organonitrogen compounds",1.53276269024685
+"19","exudate.EOD.Brachy","Organooxygen compounds",0.738548347424039
+"20","exudate.EOD.Brachy","Purine nucleosides",2.66169195937652
+"21","exudate.EOD.Brachy","Pyrimidine nucleosides",1.98648824049789
+"22","exudate.EOD.Brachy","Unknown",9.73128174706612
+"23","exudate.EOD.Medicago","Azoles",0.0938511600668881
+"24","exudate.EOD.Medicago","Benzene and substituted derivatives",0.0290659018640924
+"25","exudate.EOD.Medicago","Carboxylic acids and derivatives",42.522324393771
+"26","exudate.EOD.Medicago","Diazines",0.0576060844873495
+"27","exudate.EOD.Medicago","Imidazopyrimidines",14.7289501382137
+"28","exudate.EOD.Medicago","Indoles and derivatives",0.0180529658534899
+"29","exudate.EOD.Medicago","Organonitrogen compounds",0.171785883598698
+"30","exudate.EOD.Medicago","Organooxygen compounds",1.31441567364437
+"31","exudate.EOD.Medicago","Purine nucleosides",0.0448434840186852
+"32","exudate.EOD.Medicago","Pyrimidine nucleosides",0.628259864356563
+"33","exudate.EOD.Medicago","Unknown",40.3908444501252
+"34","exudate.EOD.TxCtrl","Azoles",0.00559586006918613
+"35","exudate.EOD.TxCtrl","Benzene and substituted derivatives",0.318020079354316
+"36","exudate.EOD.TxCtrl","Carboxylic acids and derivatives",73.0408155591824
+"37","exudate.EOD.TxCtrl","Diazines",0.0759805367890989
+"38","exudate.EOD.TxCtrl","Imidazopyrimidines",5.66807235783808
+"39","exudate.EOD.TxCtrl","Indoles and derivatives",0.0582776384497866
+"40","exudate.EOD.TxCtrl","Organonitrogen compounds",0.0558033779028064
+"41","exudate.EOD.TxCtrl","Organooxygen compounds",0.0993272980075824
+"42","exudate.EOD.TxCtrl","Purine nucleosides",0.0357916393667843
+"43","exudate.EOD.TxCtrl","Pyrimidine nucleosides",0.0324495121246368
+"44","exudate.EOD.TxCtrl","Unknown",20.6098661409153
+"45","exudate.EON.Arabidopsis","Azoles",0.0320820310887445
+"46","exudate.EON.Arabidopsis","Benzene and substituted derivatives",0.0673141338414732
+"47","exudate.EON.Arabidopsis","Carboxylic acids and derivatives",32.3388871475986
+"48","exudate.EON.Arabidopsis","Diazines",0.0903744216487165
+"49","exudate.EON.Arabidopsis","Imidazopyrimidines",29.9905417227972
+"50","exudate.EON.Arabidopsis","Indoles and derivatives",0.0457051626378923
+"51","exudate.EON.Arabidopsis","Organonitrogen compounds",0.0162818725471208
+"52","exudate.EON.Arabidopsis","Organooxygen compounds",0.570363358927287
+"53","exudate.EON.Arabidopsis","Purine nucleosides",0.184980765680664
+"54","exudate.EON.Arabidopsis","Pyrimidine nucleosides",1.05212177762857
+"55","exudate.EON.Arabidopsis","Unknown",35.6113476056037
+"56","exudate.EON.Brachy","Azoles",0.148511514018156
+"57","exudate.EON.Brachy","Benzene and substituted derivatives",0.0396541573750669
+"58","exudate.EON.Brachy","Carboxylic acids and derivatives",50.675036225827
+"59","exudate.EON.Brachy","Diazines",0.0279603582699783
+"60","exudate.EON.Brachy","Imidazopyrimidines",31.9025814121269
+"61","exudate.EON.Brachy","Indoles and derivatives",1.19223698910017
+"62","exudate.EON.Brachy","Organonitrogen compounds",1.73099850698846
+"63","exudate.EON.Brachy","Organooxygen compounds",0.213321288394643
+"64","exudate.EON.Brachy","Purine nucleosides",1.06025719502735
+"65","exudate.EON.Brachy","Pyrimidine nucleosides",0.753703391796422
+"66","exudate.EON.Brachy","Unknown",12.2557389610758
+"67","exudate.EON.Medicago","Azoles",0.0892413188216846
+"68","exudate.EON.Medicago","Benzene and substituted derivatives",0.0126540915029535
+"69","exudate.EON.Medicago","Carboxylic acids and derivatives",34.6990297752246
+"70","exudate.EON.Medicago","Diazines",0.0143511308462127
+"71","exudate.EON.Medicago","Imidazopyrimidines",16.6016422594444
+"72","exudate.EON.Medicago","Indoles and derivatives",0.0157131089942214
+"73","exudate.EON.Medicago","Organonitrogen compounds",0.160374347896674
+"74","exudate.EON.Medicago","Organooxygen compounds",0.874583813799361
+"75","exudate.EON.Medicago","Purine nucleosides",0.0517011337905002
+"76","exudate.EON.Medicago","Pyrimidine nucleosides",0.529570117175396
+"77","exudate.EON.Medicago","Unknown",46.9511389025041
+"78","exudate.EON.TxCtrl","Azoles",0.00214400569760777
+"79","exudate.EON.TxCtrl","Benzene and substituted derivatives",0.195776712335191
+"80","exudate.EON.TxCtrl","Carboxylic acids and derivatives",71.0127584098334
+"81","exudate.EON.TxCtrl","Diazines",0.00535434791810641
+"82","exudate.EON.TxCtrl","Imidazopyrimidines",5.22007857701511
+"83","exudate.EON.TxCtrl","Indoles and derivatives",0.0356263928528376
+"84","exudate.EON.TxCtrl","Organonitrogen compounds",0.0165808431893562
+"85","exudate.EON.TxCtrl","Organooxygen compounds",0.111293386432608
+"86","exudate.EON.TxCtrl","Purine nucleosides",0.141469964345289
+"87","exudate.EON.TxCtrl","Pyrimidine nucleosides",0.0470533550646186
+"88","exudate.EON.TxCtrl","Unknown",23.2118640053158
