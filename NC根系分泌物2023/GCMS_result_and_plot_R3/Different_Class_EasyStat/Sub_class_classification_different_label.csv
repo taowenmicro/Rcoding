@@ -1,0 +1,7 @@
+"","Alcohols and polyols","Alloxazines and isoalloxazines","Amines","Amino acids, peptides, and analogues","Benzoic acids and derivatives","Bilirubins","Carbohydrates and carbohydrate conjugates","Carboximidic acids","Dicarboxylic acids and derivatives","Fatty acids and conjugates","Hydroxyindoles","Imidazoles","Indolyl carboxylic acids and derivatives","Purines and purine derivatives","Pyridinecarboxylic acids and derivatives","Pyridoxamines","Pyrimidine 2-deoxyribonucleosides","Pyrimidines and pyrimidine derivatives","Quinoline carboxylic acids","Tryptamines and derivatives","Unknown"
+"root.Arabidopsis","c","a","b","a","d","d","a","c","b","cd","b","d","b","bc","c","b","a","a","d","c","c"
+"root.Brachy","bc","c","a","b","c","d","b","c","b","a","b","cd","a","b","d","b","a","b","a","c","e"
+"root.Medicago","d","ab","e","a","c","c","b","c","c","ab","a","b","a","b","c","c","d","b","b","b","d"
+"shoot.Arabidopsis","a","b","c","d","bc","d","a","c","c","d","b","c","b","bc","b","b","c","c","d","c","a"
+"shoot.Brachy","ab","bc","a","c","a","a","b","a","a","c","b","a","a","c","a","a","a","c","c","a","b"
+"shoot.Medicago","a","d","d","ab","b","b","c","b","d","b","a","a","a","a","cd","c","b","b","d","ab","d"

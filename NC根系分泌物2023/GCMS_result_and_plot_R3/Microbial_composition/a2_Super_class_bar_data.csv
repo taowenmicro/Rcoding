@@ -1,0 +1,55 @@
+"","Group","Super_class","Abundance(%)"
+"1","root.Arabidopsis","Alkaloids and derivatives",0.386825231816252
+"2","root.Arabidopsis","Benzenoids",0.145130515317449
+"3","root.Arabidopsis","Lipids and lipid-like molecules",2.45300047598303
+"4","root.Arabidopsis","Nucleosides, nucleotides, and analogues",0.110004586092342
+"5","root.Arabidopsis","Organic acids and derivatives",1.92636894561104
+"6","root.Arabidopsis","Organic nitrogen compounds",0.0219385588553743
+"7","root.Arabidopsis","Organic oxygen compounds",2.40163574086574
+"8","root.Arabidopsis","Organoheterocyclic compounds",21.6875610522094
+"9","root.Arabidopsis","Unknown",70.8675348932493
+"10","root.Brachy","Alkaloids and derivatives",0.988089330803656
+"11","root.Brachy","Benzenoids",0.213923349505561
+"12","root.Brachy","Lipids and lipid-like molecules",18.4148762417639
+"13","root.Brachy","Nucleosides, nucleotides, and analogues",0.214607487453282
+"14","root.Brachy","Organic acids and derivatives",1.41258595000409
+"15","root.Brachy","Organic nitrogen compounds",0.0397360852473501
+"16","root.Brachy","Organic oxygen compounds",2.78387385726539
+"17","root.Brachy","Organoheterocyclic compounds",19.9740138691525
+"18","root.Brachy","Unknown",55.9582938288043
+"19","root.Medicago","Alkaloids and derivatives",0.465434193729042
+"20","root.Medicago","Benzenoids",0.210777445958948
+"21","root.Medicago","Lipids and lipid-like molecules",14.4568054168437
+"22","root.Medicago","Nucleosides, nucleotides, and analogues",0.205306364993596
+"23","root.Medicago","Organic acids and derivatives",1.73669202541607
+"24","root.Medicago","Organic nitrogen compounds",0.00290161283885144
+"25","root.Medicago","Organic oxygen compounds",1.09464713027798
+"26","root.Medicago","Organoheterocyclic compounds",18.8475526942352
+"27","root.Medicago","Unknown",62.9798831157066
+"28","shoot.Arabidopsis","Alkaloids and derivatives",0.389975952383322
+"29","shoot.Arabidopsis","Benzenoids",0.405791911941949
+"30","shoot.Arabidopsis","Lipids and lipid-like molecules",1.86666398849764
+"31","shoot.Arabidopsis","Nucleosides, nucleotides, and analogues",0.0593443719833164
+"32","shoot.Arabidopsis","Organic acids and derivatives",0.3824862629686
+"33","shoot.Arabidopsis","Organic nitrogen compounds",0.013869245063122
+"34","shoot.Arabidopsis","Organic oxygen compounds",4.81090266285273
+"35","shoot.Arabidopsis","Organoheterocyclic compounds",7.52185902550147
+"36","shoot.Arabidopsis","Unknown",84.5491065788079
+"37","shoot.Brachy","Alkaloids and derivatives",0.592755399832557
+"38","shoot.Brachy","Benzenoids",1.40486327968478
+"39","shoot.Brachy","Lipids and lipid-like molecules",2.89788741696487
+"40","shoot.Brachy","Nucleosides, nucleotides, and analogues",0.0770081653376272
+"41","shoot.Brachy","Organic acids and derivatives",0.94644195321982
+"42","shoot.Brachy","Organic nitrogen compounds",0.047594689297431
+"43","shoot.Brachy","Organic oxygen compounds",3.83186716667091
+"44","shoot.Brachy","Organoheterocyclic compounds",14.0030914255677
+"45","shoot.Brachy","Unknown",76.1984905034243
+"46","shoot.Medicago","Alkaloids and derivatives",0.853270798981881
+"47","shoot.Medicago","Benzenoids",0.48432366978925
+"48","shoot.Medicago","Lipids and lipid-like molecules",8.67719838055104
+"49","shoot.Medicago","Nucleosides, nucleotides, and analogues",0.142940214912671
+"50","shoot.Medicago","Organic acids and derivatives",1.52327336965441
+"51","shoot.Medicago","Organic nitrogen compounds",0.00657113332153248
+"52","shoot.Medicago","Organic oxygen compounds",4.11890614964642
+"53","shoot.Medicago","Organoheterocyclic compounds",21.6406233472195
+"54","shoot.Medicago","Unknown",62.5528929359233

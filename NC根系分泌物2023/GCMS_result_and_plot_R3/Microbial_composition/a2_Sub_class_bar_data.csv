@@ -1,0 +1,79 @@
+"","Group","Sub_class","Abundance(%)"
+"1","root.Arabidopsis","Alcohols and polyols",2.26857763395693
+"2","root.Arabidopsis","Amino acids, peptides, and analogues",1.91985293463967
+"3","root.Arabidopsis","Benzoic acids and derivatives",0.145130515317449
+"4","root.Arabidopsis","Carbohydrates and carbohydrate conjugates",0.133058106908809
+"5","root.Arabidopsis","Fatty acids and conjugates",2.45300047598303
+"6","root.Arabidopsis","Hydroxyindoles",0.241350894662442
+"7","root.Arabidopsis","Indolyl carboxylic acids and derivatives",1.15519251064591
+"8","root.Arabidopsis","Purines and purine derivatives",0.0451700982855948
+"9","root.Arabidopsis","Pyridoxamines",0.0352188444874083
+"10","root.Arabidopsis","Pyrimidines and pyrimidine derivatives",20.1140890423498
+"11","root.Arabidopsis","Quinoline carboxylic acids",0.0239078811584978
+"12","root.Arabidopsis","Unknown",71.3426911117675
+"13","root.Arabidopsis","others",0.122759949837026
+"14","root.Brachy","Alcohols and polyols",2.7699634585837
+"15","root.Brachy","Amino acids, peptides, and analogues",1.40886226477075
+"16","root.Brachy","Benzoic acids and derivatives",0.213923349505561
+"17","root.Brachy","Carbohydrates and carbohydrate conjugates",0.013910398681682
+"18","root.Brachy","Fatty acids and conjugates",18.4148762417639
+"19","root.Brachy","Hydroxyindoles",0.276227770776904
+"20","root.Brachy","Indolyl carboxylic acids and derivatives",4.28150471833352
+"21","root.Brachy","Purines and purine derivatives",0.0804201338875222
+"22","root.Brachy","Pyridoxamines",0.0301509912441374
+"23","root.Brachy","Pyrimidines and pyrimidine derivatives",14.9496423441776
+"24","root.Brachy","Quinoline carboxylic acids",0.328408709450166
+"25","root.Brachy","Unknown",57.1427361512262
+"26","root.Brachy","others",0.0893734675983844
+"27","root.Medicago","Alcohols and polyols",1.09319971027509
+"28","root.Medicago","Amino acids, peptides, and analogues",1.73475450356258
+"29","root.Medicago","Benzoic acids and derivatives",0.210777445958948
+"30","root.Medicago","Carbohydrates and carbohydrate conjugates",0.00144742000288397
+"31","root.Medicago","Fatty acids and conjugates",14.4568054168437
+"32","root.Medicago","Hydroxyindoles",0.502268193522307
+"33","root.Medicago","Indolyl carboxylic acids and derivatives",5.04763854461387
+"34","root.Medicago","Purines and purine derivatives",0.0826980948370733
+"35","root.Medicago","Pyridoxamines",0.00701338123950954
+"36","root.Medicago","Pyrimidines and pyrimidine derivatives",12.9695915658687
+"37","root.Medicago","Quinoline carboxylic acids",0.183994606487379
+"38","root.Medicago","Unknown",63.6489972453553
+"39","root.Medicago","others",0.0608138714326801
+"40","shoot.Arabidopsis","Alcohols and polyols",4.53643880063078
+"41","shoot.Arabidopsis","Amino acids, peptides, and analogues",0.380558312172341
+"42","shoot.Arabidopsis","Benzoic acids and derivatives",0.405791911941949
+"43","shoot.Arabidopsis","Carbohydrates and carbohydrate conjugates",0.274463862221955
+"44","shoot.Arabidopsis","Fatty acids and conjugates",1.86666398849764
+"45","shoot.Arabidopsis","Hydroxyindoles",0.326351035470236
+"46","shoot.Arabidopsis","Indolyl carboxylic acids and derivatives",1.79692858264313
+"47","shoot.Arabidopsis","Purines and purine derivatives",0.0658311839639966
+"48","shoot.Arabidopsis","Pyridoxamines",0.0253548393535548
+"49","shoot.Arabidopsis","Pyrimidines and pyrimidine derivatives",5.23982435429252
+"50","shoot.Arabidopsis","Quinoline carboxylic acids",0.000203421180205575
+"51","shoot.Arabidopsis","Unknown",84.9945488877611
+"52","shoot.Arabidopsis","others",0.0870408198705526
+"53","shoot.Brachy","Alcohols and polyols",3.83018940939324
+"54","shoot.Brachy","Amino acids, peptides, and analogues",0.841809521666178
+"55","shoot.Brachy","Benzoic acids and derivatives",1.40486327968478
+"56","shoot.Brachy","Carbohydrates and carbohydrate conjugates",0.00167775727767647
+"57","shoot.Brachy","Fatty acids and conjugates",2.89788741696487
+"58","shoot.Brachy","Hydroxyindoles",0.323268672292638
+"59","shoot.Brachy","Indolyl carboxylic acids and derivatives",6.51389658293499
+"60","shoot.Brachy","Purines and purine derivatives",0.0342416555762545
+"61","shoot.Brachy","Pyridoxamines",0.0925091684551063
+"62","shoot.Brachy","Pyrimidines and pyrimidine derivatives",6.87316304524414
+"63","shoot.Brachy","Quinoline carboxylic acids",0.0351893214244774
+"64","shoot.Brachy","Unknown",76.8502699775649
+"65","shoot.Brachy","others",0.301034191520774
+"66","shoot.Medicago","Alcohols and polyols",4.11300061077692
+"67","shoot.Medicago","Amino acids, peptides, and analogues",1.52236703508639
+"68","shoot.Medicago","Benzoic acids and derivatives",0.48432366978925
+"69","shoot.Medicago","Carbohydrates and carbohydrate conjugates",0.00590553886949472
+"70","shoot.Medicago","Fatty acids and conjugates",8.67719838055104
+"71","shoot.Medicago","Hydroxyindoles",0.548536957758549
+"72","shoot.Medicago","Indolyl carboxylic acids and derivatives",5.27731295282395
+"73","shoot.Medicago","Purines and purine derivatives",0.195877439727518
+"74","shoot.Medicago","Pyridoxamines",0.00756894120775263
+"75","shoot.Medicago","Pyrimidines and pyrimidine derivatives",15.5778064846363
+"76","shoot.Medicago","Quinoline carboxylic acids",0.0014007742556515
+"77","shoot.Medicago","Unknown",63.5375409721551
+"78","shoot.Medicago","others",0.0511602423620551

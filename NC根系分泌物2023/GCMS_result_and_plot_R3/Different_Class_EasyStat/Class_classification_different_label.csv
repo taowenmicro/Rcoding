@@ -1,0 +1,7 @@
+"","Azoles","Benzene and substituted derivatives","Carboximidic acids and derivatives","Carboxylic acids and derivatives","Diazines","Fatty Acyls","Imidazopyrimidines","Indoles and derivatives","Organonitrogen compounds","Organooxygen compounds","Pteridines and derivatives","Purine nucleosides","Pyridines and derivatives","Pyrimidine nucleosides","Quinolines and derivatives","Tetrapyrroles and derivatives","Unknown"
+"root.Arabidopsis","d","d","c","a","a","cd","bc","b","b","c","a","c","bc","b","d","d","c"
+"root.Brachy","cd","c","c","b","b","a","b","a","a","bc","c","ab","c","a","a","d","e"
+"root.Medicago","b","c","c","a","b","ab","b","a","e","d","ab","a","d","c","b","c","d"
+"shoot.Arabidopsis","c","bc","c","d","c","d","bc","b","c","a","b","c","b","d","d","d","a"
+"shoot.Brachy","a","a","a","c","c","c","c","a","a","ab","bc","c","a","bc","c","a","b"
+"shoot.Medicago","a","b","b","ab","b","b","a","a","d","a","d","b","d","c","d","b","d"

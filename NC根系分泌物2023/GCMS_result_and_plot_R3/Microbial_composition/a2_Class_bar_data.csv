@@ -1,0 +1,79 @@
+"","Group","Class","Abundance(%)"
+"1","root.Arabidopsis","Benzene and substituted derivatives",0.145130515317449
+"2","root.Arabidopsis","Carboxylic acids and derivatives",1.92636746695797
+"3","root.Arabidopsis","Diazines",20.1140890423498
+"4","root.Arabidopsis","Fatty Acyls",2.45300047598303
+"5","root.Arabidopsis","Imidazopyrimidines",0.0451700982855948
+"6","root.Arabidopsis","Indoles and derivatives",1.39674199204465
+"7","root.Arabidopsis","Organooxygen compounds",2.40163574086574
+"8","root.Arabidopsis","Pteridines and derivatives",0.064198406519387
+"9","root.Arabidopsis","Purine nucleosides",0.0712405744138434
+"10","root.Arabidopsis","Pyridines and derivatives",0.0386938685993146
+"11","root.Arabidopsis","Quinolines and derivatives",0.0239078811584978
+"12","root.Arabidopsis","Unknown",71.2543601250656
+"13","root.Arabidopsis","others",0.0654638124391718
+"14","root.Brachy","Benzene and substituted derivatives",0.213923349505561
+"15","root.Brachy","Carboxylic acids and derivatives",1.41258595000409
+"16","root.Brachy","Diazines",14.9496423441776
+"17","root.Brachy","Fatty Acyls",18.4148762417639
+"18","root.Brachy","Imidazopyrimidines",0.0804201338875222
+"19","root.Brachy","Indoles and derivatives",4.55781566050279
+"20","root.Brachy","Organooxygen compounds",2.78387385726539
+"21","root.Brachy","Pteridines and derivatives",0.0214322651123923
+"22","root.Brachy","Purine nucleosides",0.171354818732959
+"23","root.Brachy","Pyridines and derivatives",0.0310932648441456
+"24","root.Brachy","Quinolines and derivatives",0.328408709450166
+"25","root.Brachy","Unknown",56.946383159608
+"26","root.Brachy","others",0.0881902451455954
+"27","root.Medicago","Benzene and substituted derivatives",0.210777445958948
+"28","root.Medicago","Carboxylic acids and derivatives",1.73669202541607
+"29","root.Medicago","Diazines",12.9695915658687
+"30","root.Medicago","Fatty Acyls",14.4568054168437
+"31","root.Medicago","Imidazopyrimidines",0.0826980948370733
+"32","root.Medicago","Indoles and derivatives",5.55145755281927
+"33","root.Medicago","Organooxygen compounds",1.09464713027798
+"34","root.Medicago","Pteridines and derivatives",0.0407014143232583
+"35","root.Medicago","Purine nucleosides",0.186744595281313
+"36","root.Medicago","Pyridines and derivatives",0.00959007863137435
+"37","root.Medicago","Quinolines and derivatives",0.183994606487379
+"38","root.Medicago","Unknown",63.4453173094356
+"39","root.Medicago","others",0.0309827638193364
+"40","shoot.Arabidopsis","Benzene and substituted derivatives",0.405791911941949
+"41","shoot.Arabidopsis","Carboxylic acids and derivatives",0.382469601693573
+"42","shoot.Arabidopsis","Diazines",5.23982435429252
+"43","shoot.Arabidopsis","Fatty Acyls",1.86666398849764
+"44","shoot.Arabidopsis","Imidazopyrimidines",0.0658311839639966
+"45","shoot.Arabidopsis","Indoles and derivatives",2.12340581567783
+"46","shoot.Arabidopsis","Organooxygen compounds",4.81090266285273
+"47","shoot.Arabidopsis","Pteridines and derivatives",0.0349340421239716
+"48","shoot.Arabidopsis","Purine nucleosides",0.0526903848600373
+"49","shoot.Arabidopsis","Pyridines and derivatives",0.0512327160347073
+"50","shoot.Arabidopsis","Quinolines and derivatives",0.000203421180205575
+"51","shoot.Arabidopsis","Unknown",84.9390825311912
+"52","shoot.Arabidopsis","others",0.0269673856896708
+"53","shoot.Brachy","Benzene and substituted derivatives",1.40486327968478
+"54","shoot.Brachy","Carboxylic acids and derivatives",0.906618268828912
+"55","shoot.Brachy","Diazines",6.87316304524414
+"56","shoot.Brachy","Fatty Acyls",2.89788741696487
+"57","shoot.Brachy","Imidazopyrimidines",0.0342416555762545
+"58","shoot.Brachy","Indoles and derivatives",6.84585810768033
+"59","shoot.Brachy","Organooxygen compounds",3.83186716667091
+"60","shoot.Brachy","Pteridines and derivatives",0.0292109809386943
+"61","shoot.Brachy","Purine nucleosides",0.0560767115834101
+"62","shoot.Brachy","Pyridines and derivatives",0.161517237833399
+"63","shoot.Brachy","Quinolines and derivatives",0.0351893214244774
+"64","shoot.Brachy","Unknown",76.7912459032569
+"65","shoot.Brachy","others",0.132260904312926
+"66","shoot.Medicago","Benzene and substituted derivatives",0.48432366978925
+"67","shoot.Medicago","Carboxylic acids and derivatives",1.52290341289265
+"68","shoot.Medicago","Diazines",15.5778064846363
+"69","shoot.Medicago","Fatty Acyls",8.67719838055104
+"70","shoot.Medicago","Imidazopyrimidines",0.195877439727518
+"71","shoot.Medicago","Indoles and derivatives",5.82992075099263
+"72","shoot.Medicago","Organooxygen compounds",4.11890614964642
+"73","shoot.Medicago","Pteridines and derivatives",0.00631914855082742
+"74","shoot.Medicago","Purine nucleosides",0.126758450619515
+"75","shoot.Medicago","Pyridines and derivatives",0.0105998801884392
+"76","shoot.Medicago","Quinolines and derivatives",0.0014007742556515
+"77","shoot.Medicago","Unknown",63.4061637349051
+"78","shoot.Medicago","others",0.0418217232445897
