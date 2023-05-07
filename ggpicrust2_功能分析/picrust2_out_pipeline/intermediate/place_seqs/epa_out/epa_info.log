@@ -1,0 +1,24 @@
+INFO Selected: Output dir: ./result/picrust2_out_pipeline/intermediate/place_seqs/epa_out/
+INFO Selected: Query file: ./result/picrust2_out_pipeline/intermediate/place_seqs/study_seqs_hmmalign.fasta
+INFO Selected: Tree file: /home/wentao/miniconda3/envs/qiime2-2022.8/lib/python3.8/site-packages/PICRUSt2-2.3.0b0-py3.8.egg/picrust2/default_files/prokaryotic/pro_ref/pro_ref.tre
+INFO Selected: Reference MSA: ./result/picrust2_out_pipeline/intermediate/place_seqs/ref_seqs_hmmalign.fasta
+INFO Selected: Filtering by accumulated threshold: 0.99
+INFO Selected: Maximum number of placements per query: 100
+INFO Selected: Automatic switching of use of per rate scalers
+INFO Selected: Preserving the root of the input tree
+INFO Selected: Specified model file: /home/wentao/miniconda3/envs/qiime2-2022.8/lib/python3.8/site-packages/PICRUSt2-2.3.0b0-py3.8.egg/picrust2/default_files/prokaryotic/pro_ref/pro_ref.model
+INFO Selected: Reading queries in chunks of: 5000
+INFO Selected: Using threads: 1
+INFO     ______ ____   ___           _   __ ______
+        / ____// __ \ /   |         / | / // ____/
+       / __/  / /_/ // /| | ______ /  |/ // / __  
+      / /___ / ____// ___ |/_____// /|  // /_/ /  
+     /_____//_/    /_/  |_|      /_/ |_/ \____/ (v0.3.8)
+INFO Using model parameters:
+INFO    Rate heterogeneity: GAMMA (4 cats, mean),  alpha: 0.453141 (user),  weights&rates: (0.25,0.0250674) (0.25,0.220229) (0.25,0.782933) (0.25,2.97177) 
+        Base frequencies (user): 0.229585 0.22008 0.298596 0.251739 
+        Substitution rates (user): 1.00319 2.79077 1.5301 0.87441 3.83966 1
+INFO Output file: ./result/picrust2_out_pipeline/intermediate/place_seqs/epa_out/epa_result.jplace
+INFO 2920 Sequences done!
+INFO Time spent placing: 133s
+INFO Elapsed Time: 136s
