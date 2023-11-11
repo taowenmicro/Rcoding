@@ -1,0 +1,3723 @@
+---
+title: "main_pipeline"
+author: "wentao"
+date: "2023/11/07"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{css include=FALSE}
+ pre code,pre,code {
+ white-space:pre!important;
+ overflow-x: scroll!important; 
+}
+
+```
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      fig.width = 7,
+                      fig.height = 5,
+                      fig.align = "center",
+                      warning = FALSE,
+                      message = FALSE
+                      )
+```
+
+# 写在前面
+
+2023年01月28日，更新ggClusterNet文档。
+
+# 绪论
+
+# 第一章：环境配置
+
+## R包安装
+
+```{R eval=FALSE, include=FALSE}
+
+install.packages("BiocManager")
+library(BiocManager)
+install("remotes")
+install("tidyverse")
+install("tidyfst")
+install("igraph")
+install("sna")
+install("phyloseq")
+install("ggalluvial")
+install("ggraph")
+install("WGCNA")
+install("ggnewscale")
+install("pulsar")
+install("patchwork")
+remotes::install_github("taowenmicro/EasyStat")
+remotes::install_github("taowenmicro/ggClusterNet")
+
+```
+
+
+## 导入R包
+
+
+```{R}
+
+#--导入所需R包#-------
+library(phyloseq)
+library(igraph)
+library(network)
+library(sna)
+library(tidyverse)
+library(ggClusterNet)
+
+```
+
+# 第二章2.1：基本函数与使用
+
+## 数据输入
+
+### 内置数据介绍
+
+
+内置数据为phyloseq格式的数据。该数据来自野生型，突变和过表达三类植物根际，测定的是V5-V7区域的细菌群落；
+
+
+```{R}
+#-----导入数据#-------
+data(ps)
+ps
+
+```
+
+
+### 手动数据输入
+
+可以从https://github.com/taowenmicro/R-_function下载数据，构造phylsoeq文件。自己的数据也按照网址示例数据进行准备。虽然phylsoeq对象不易用常规手段处理，但是组学数据由于数据量比较大，数据注释内容多样化，所以往往使用诸如phyloseq这类对象进行处理，并简化数据处理过程。ggClusterNet同样使用了phyloseq对象作为微生物网络的分析。
+
+phyloseq对象构建过程如下，网络分析主要用到otu表格，后续pipeline流程可能用到分组文件metadata，如果按照分类水平山色或者区分模块则需要taxonomy。这几个部分并不是都必须加入phyloseq对象中，可以用到那个加那个。
+
+
+```{R eval=FALSE, include=FALSE}
+
+library(phyloseq)
+library(ggClusterNet)
+library(tidyverse)
+library(Biostrings)
+
+metadata = read.delim("./metadata.tsv",row.names = 1)
+otutab = read.delim("./otutab.txt", row.names=1)
+taxonomy = read.table("./taxonomy.txt", row.names=1,header = T)
+head(taxonomy)
+# tree  = read_tree("./otus.tree")
+# rep = readDNAStringSet("./otus.fa")
+
+ps = phyloseq(sample_data(metadata),
+              otu_table(as.matrix(otutab), taxa_are_rows=TRUE),
+              tax_table(as.matrix(taxonomy))#,
+              # phy_tree(tree),
+              # refseq(rep)
+              )
+
+ps
+rank.names(ps)
+
+```
+
+### 远程读取数据
+
+
+但是由于github在国外，所以容易失败
+
+```{R eval=FALSE, include=FALSE}
+
+metadata = read.delim("https://raw.githubusercontent.com/taowenmicro/R-_function/main/metadata.tsv",row.names = 1)
+otutab = read.delim("https://raw.githubusercontent.com/taowenmicro/R-_function/main/otutab.txt", row.names=1)
+taxonomy = read.table("https://raw.githubusercontent.com/taowenmicro/R-_function/main/taxonomy.txt", row.names=1)
+# tree  = read_tree("https://raw.githubusercontent.com/taowenmicro/R-_function/main/otus.tree")
+# rep = readDNAStringSet("https://raw.githubusercontent.com/taowenmicro/R-_function/main/otus.fa")
+
+ps = phyloseq(sample_data(metadata),
+              otu_table(as.matrix(otutab), taxa_are_rows=TRUE),
+              tax_table(as.matrix(taxonomy))#,
+              # phy_tree(tree),
+              # refseq(rep)
+              )
+
+
+```
+
+
+## 第二章2.2：一个使用ggCLusterNet进行网络分析基本过程
+
+
+### corMicro函数用于计算网络相关
+
+按照丰度过滤微生物表格，并却计算相关矩阵，按照指定的阈值挑选矩阵中展示的数值。调用了psych包中的corr.test函数，使用三种相关方法。
+N参数提取丰度最高的150个OTU；
+method.scale参数确定微生物组数据的标准化方式，这里我们选用TMM方法标准化微生物数据。 
+
+
+```{R}
+
+#--导入所需R包#-------
+library(phyloseq)
+library(igraph)
+library(network)
+library(sna)
+library(tidyverse)
+library(ggClusterNet)
+
+#-提取丰度最高的指定数量的otu进行构建网络
+#----------计算相关#----
+result = corMicro(ps = ps,
+                   N = 150,
+                   method.scale = "TMM",
+                   r.threshold=0.8,
+                   p.threshold=0.05,
+                   method = "spearman"
+                   )
+
+#--提取相关矩阵
+cor = result[[1]]
+cor[1:6,1:6]
+
+#-网络中包含的OTU的phyloseq文件提取
+ps_net = result[[3]]
+
+#-导出otu表格
+otu_table = ps_net %>% 
+  vegan_otu() %>%
+  t() %>%
+  as.data.frame()
+
+
+```
+
+### 制作模块分组
+
+我们模拟五个分组
+
+这是网络布局的基础，无论是什么聚类布局，都需要制作一个分组文件，这个文件有两列，一列是节点，一列是分组信息，这个分组信息名称为：group。这个文件信息就是用于对节点进行分组，然后按照分组对节点归类，使用包中可视化函数计算节点位置。
+
+注意分组文件的格式，分为两列，第一列是网络中包含的OTU的名字，第二列是分组信息，同样的分组标记同样的字符。
+
+
+```{R}
+#--人工构造分组信息：将网络中全部OTU分为五个部分，等分
+netClu = data.frame(ID = row.names(otu_table),group =rep(1:5,length(row.names(otu_table)))[1:length(row.names(otu_table))] )
+netClu$group = as.factor(netClu$group)
+head(netClu)
+
+```
+
+
+### 布局函数：PolygonClusterG 
+
+根据分组，计算布局位置坐标
+
+不同的模块按照分组聚集成不同的圆，并且圆形的大小一样。如果一个分组只有一个点，则这个点坐落在圆心位置。
+
+```{R}
+#--------计算布局#---------
+result2 = PolygonClusterG (cor = cor,nodeGroup =netClu  )
+node = result2[[1]]
+head(node)
+
+```
+
+
+### 节点注释
+
+用otu表格和分组文件进行注释
+
+nodeadd函数只是提供了简单的用注释函数，用户可以自己在node的表格后面添加各种注释信息。
+
+```{R}
+
+tax_table = ps_net %>%
+  vegan_tax() %>%
+  as.data.frame()
+#---node节点注释#-----------
+nodes = nodeadd(plotcord =node,otu_table = otu_table,tax_table = tax_table)
+nodes[1:6,1:6]
+```
+
+### 边计算
+
+```{R}
+#-----计算边#--------
+edge = edgeBuild(cor = cor,node = node)
+head(edge)
+```
+
+### 使用ggplot出图
+
+```{R}
+p <- ggplot() + geom_segment(aes(x = X1, y = Y1, xend = X2, yend = Y2,color = as.factor(cor)),
+                                data = edge, size = 0.5) +
+  geom_point(aes(X1, X2,fill = Phylum,size = mean),pch = 21, data = nodes) +
+  scale_colour_brewer(palette = "Set1") +
+  scale_x_continuous(breaks = NULL) + scale_y_continuous(breaks = NULL) +
+  theme(panel.background = element_blank()) +
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank()) +
+  theme(legend.background = element_rect(colour = NA)) +
+  theme(panel.background = element_rect(fill = "white",  colour = NA)) +
+  theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank())
+p
+
+# ggsave("cs1.pdf",p,width = 8,height = 6)
+```
+
+
+## 第二章2.3：模拟不同的模块分组进行网络可视化
+
+### 模拟1个分组
+
+这是网络布局的基础，无论是什么聚类布局，都需要制作一个分组文件，这个文件有两列，一列是节点，一列是分组信息，这个分组信息名称必须设定为：group。
+
+```{R}
+
+#--导入所需R包#-------
+library(phyloseq)
+library(igraph)
+library(network)
+library(sna)
+library(tidyverse)
+library(ggClusterNet)
+
+#----------计算相关#----
+result = corMicro(ps = ps,
+                   N = 150,
+                   method.scale = "TMM",
+                   r.threshold=0.8,
+                   p.threshold=0.05,
+                   method = "spearman"
+                   )
+
+#--提取相关矩阵
+cor = result[[1]]
+cor[1:6,1:6]
+
+#-网络中包含的OTU的phyloseq文件提取
+ps_net = result[[3]]
+
+#-导出otu表格
+otu_table = ps_net %>% 
+  vegan_otu() %>%
+  t() %>%
+  as.data.frame()
+tax_table =  ps_net %>% 
+  vegan_tax()%>%
+  as.data.frame()
+
+netClu = data.frame(ID = row.names(tax_table),group =rep(1,length(row.names(tax_table)))[1:length(row.names(tax_table))] )
+netClu$group = as.factor(netClu$group)
+result2 = PolygonClusterG (cor = cor,nodeGroup =netClu )
+node = result2[[1]]
+# ---node节点注释#-----------
+nodes = nodeadd(plotcord =node,otu_table = otu_table,tax_table = tax_table)
+
+#-----计算边#--------
+edge = edgeBuild(cor = cor,node = node)
+
+### 出图
+pnet <- ggplot() + geom_segment(aes(x = X1, y = Y1, xend = X2, yend = Y2,color = as.factor(cor)),
+                                data = edge, size = 0.5) +
+  geom_point(aes(X1, X2,fill = Phylum,size = mean),pch = 21, data = nodes) +
+  scale_colour_brewer(palette = "Set1") +
+  scale_x_continuous(breaks = NULL) + scale_y_continuous(breaks = NULL) +
+  # labs( title = paste(layout,"network",sep = "_"))+
+  # geom_text_repel(aes(X1, X2,label=Phylum),size=4, data = plotcord)+
+  # discard default grid + titles in ggplot2
+  theme(panel.background = element_blank()) +
+  # theme(legend.position = "none") +
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank()) +
+  theme(legend.background = element_rect(colour = NA)) +
+  theme(panel.background = element_rect(fill = "white",  colour = NA)) +
+  theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank())
+pnet
+
+# ggsave("cs2.pdf",pnet,width = 7,height = 5.5)
+
+```
+
+### 模拟8个分组
+
+```{R}
+
+
+#----------计算相关#----
+result = cor_Big_micro(ps = ps,
+                   N = 500,
+                   # method.scale = "TMM",
+                   r.threshold=0.8,
+                   p.threshold=0.05,
+                   method = "spearman"
+                   
+                   
+                   )
+
+#--提取相关矩阵
+cor = result[[1]]
+cor[1:6,1:6]
+
+#-网络中包含的OTU的phyloseq文件提取
+ps_net = ps
+
+#-导出otu表格
+otu_table = ps_net %>% 
+  vegan_otu() %>%
+  t() %>%
+  as.data.frame()
+
+netClu = data.frame(ID = row.names(cor),group =rep(1:3,length(row.names(cor)))[1:length(row.names(cor))] )
+netClu$group = as.factor(netClu$group)
+set.seed(12)
+#-实心圆2
+result2 = model_filled_circle(cor = cor,
+                              culxy =TRUE,
+                              da = NULL,# 数据框，包含x,和y列
+                              nodeGroup = netClu,
+                              mi.size = 1,# 最小圆圈的半径，越大半径越大
+                              zoom = 0.15# 不同模块之间距离
+                              )
+
+# result2 = PolygonRrClusterG (cor = cor,nodeGroup =group2 )
+node = result2[[1]]
+# ---node节点注释#-----------
+nodes = nodeadd(plotcord =node,otu_table = otu_table,tax_table = tax_table)
+#-----计算边#--------
+edge = edgeBuild(cor = cor,node = node)
+### 出图
+pnet <- ggplot() + geom_segment(aes(x = X1, y = Y1, xend = X2, yend = Y2,color = as.factor(cor)),
+                                data = edge, size = 0.5,alpha = 0.2) +
+  geom_point(aes(X1, X2,fill = Phylum,size = mean),pch = 21, data = nodes) +
+  scale_colour_brewer(palette = "Set1") +
+  scale_x_continuous(breaks = NULL) + scale_y_continuous(breaks = NULL) +
+  # labs( title = paste(layout,"network",sep = "_"))+
+  # geom_text_repel(aes(X1, X2,label=Phylum),size=4, data = plotcord)+
+  # discard default grid + titles in ggplot2
+  theme(panel.background = element_blank()) +
+  # theme(legend.position = "none") +
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank()) +
+  theme(legend.background = element_rect(colour = NA)) +
+  theme(panel.background = element_rect(fill = "white",  colour = NA)) +
+  theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank())
+pnet
+ggsave("cs3.pdf",pnet,width = 9,height = 7)
+```
+
+```{R}
+
+netClu = data.frame(ID = row.names(cor),group =rep(1:8,length(row.names(cor)))[1:length(row.names(cor))] )
+netClu$group = as.factor(netClu$group)
+result2 = PolygonClusterG (cor = cor,nodeGroup =netClu )
+node = result2[[1]]
+# ---node节点注释#-----------
+nodes = nodeadd(plotcord =node,otu_table = otu_table,tax_table = tax_table)
+#-----计算边#--------
+edge = edgeBuild(cor = cor,node = node)
+### 出图
+pnet <- ggplot() + geom_segment(aes(x = X1, y = Y1, xend = X2, yend = Y2,color = as.factor(cor)),
+                                data = edge, size = 0.5) +
+  geom_point(aes(X1, X2,fill = Phylum,size = mean),pch = 21, data = nodes) +
+  scale_colour_brewer(palette = "Set1") +
+  scale_x_continuous(breaks = NULL) + scale_y_continuous(breaks = NULL) +
+  # labs( title = paste(layout,"network",sep = "_"))+
+  # geom_text_repel(aes(X1, X2,label=Phylum),size=4, data = plotcord)+
+  # discard default grid + titles in ggplot2
+  theme(panel.background = element_blank()) +
+  # theme(legend.position = "none") +
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank()) +
+  theme(legend.background = element_rect(colour = NA)) +
+  theme(panel.background = element_rect(fill = "white",  colour = NA)) +
+  theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank())
+pnet
+
+# ggsave("cs3.pdf",pnet,width = 6,height = 5)
+
+```
+
+
+## 使微生物分类信息作为分组探索多种布局
+
+```{R}
+#--导入所需R包#-------
+library(phyloseq)
+library(igraph)
+library(network)
+library(sna)
+library(tidyverse)
+library(ggClusterNet)
+
+tax_table$Phylum %>% unique()
+
+pst = ps  %>%
+  subset_taxa(
+    Phylum  %in% c("Actinobacteria","Proteobacteria", "Bacteroidetes" , "Chloroflexi" )
+    
+  )
+
+#----------计算相关#----
+result = cor_Big_micro2 (ps = pst,
+                   N = 500,
+                   met.scale = "TMM",
+                   r.threshold=0.7,
+                   p.threshold=0.05,
+                   method = "spearman"
+                   )
+#--提取相关矩阵
+
+cor = result[[1]]
+# head(cor)
+#-网络中包含的OTU的phyloseq文件提取
+ps_net = pst %>% subset_taxa.wt("OTU",colnames(cor))
+#-导出otu表格
+otu_table = ps_net %>% 
+  vegan_otu() %>%
+  t() %>%
+  as.data.frame()
+tax = ps_net %>% vegan_tax() %>%
+  as.data.frame()
+tax$filed = tax$Phylum
+group2 <- data.frame(ID = row.names(tax),group = tax$Phylum)
+group2$group  =as.factor(group2$group)
+result2 = PolygonClusterG (cor = cor,nodeGroup =group2 )
+node = result2[[1]]
+# ---node节点注释#-----------
+nodes = nodeadd(plotcord =node,otu_table = otu_table,tax_table = tax_table)
+#-----计算边#--------
+edge = edgeBuild(cor = cor,node = node)
+### 出图
+pnet <- ggplot() + geom_segment(aes(x = X1, y = Y1, xend = X2, yend = Y2,color = as.factor(cor)),
+                                data = edge, size = 0.5) +
+  geom_point(aes(X1, X2,fill = Phylum,size = mean),pch = 21, data = nodes) +
+  scale_colour_brewer(palette = "Set1") +
+  scale_x_continuous(breaks = NULL) + scale_y_continuous(breaks = NULL) +
+  # labs( title = paste(layout,"network",sep = "_"))+
+  # geom_text_repel(aes(X1, X2,label=Phylum),size=4, data = plotcord)+
+  # discard default grid + titles in ggplot2
+  theme(panel.background = element_blank()) +
+  # theme(legend.position = "none") +
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank()) +
+  theme(legend.background = element_rect(colour = NA)) +
+  theme(panel.background = element_rect(fill = "white",  colour = NA)) +
+  theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank())
+pnet
+
+# ggsave("cs3.pdf",pnet,width = 6,height = 5)
+
+```
+
+
+### 选择不同的布局：圆环半径调整PolygonRrClusterG
+
+结果发现这些高丰度OTU大部分属于放线菌门和变形菌门，其他比较少。所以下面我们按照OTU数量的多少，对每个模块的大小进行重新调整。
+
+
+```{R}
+
+result2 = PolygonRrClusterG(cor = cor,nodeGroup =group2 )
+node = result2[[1]]
+# ---node节点注释#-----------
+nodes = nodeadd(plotcord =node,otu_table = otu_table,tax_table = tax_table)
+#-----计算边#--------
+edge = edgeBuild(cor = cor,node = node)
+### 出图
+pnet <- ggplot() + geom_segment(aes(x = X1, y = Y1, xend = X2, yend = Y2,color = as.factor(cor)),
+                                data = edge, size = 0.5) +
+  geom_point(aes(X1, X2,fill = Phylum,size = mean),pch = 21, data = nodes) +
+  scale_colour_brewer(palette = "Set1") +
+  scale_x_continuous(breaks = NULL) + scale_y_continuous(breaks = NULL) +
+  # labs( title = paste(layout,"network",sep = "_"))+
+  # geom_text_repel(aes(X1, X2,label=Phylum),size=4, data = plotcord)+
+  # discard default grid + titles in ggplot2
+  theme(panel.background = element_blank()) +
+  # theme(legend.position = "none") +
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank()) +
+  theme(legend.background = element_rect(colour = NA)) +
+  theme(panel.background = element_rect(fill = "white",  colour = NA)) +
+  theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank())
+pnet
+
+# ggsave("cs4.pdf",pnet,width = 6,height = 5)
+
+
+```
+
+
+### 微生物分类可视化布局优化2-model_filled_circle
+
+用实心点作为每个模块的布局方式
+
+```{R}
+
+set.seed(12)
+#-实心圆2
+result2 = model_filled_circle(cor = cor,
+                              culxy =TRUE,
+                              da = NULL,# 数据框，包含x,和y列
+                              nodeGroup = group2,
+                              mi.size = 1,# 最小圆圈的半径，越大半径越大
+                              zoom = 0.3# 不同模块之间距离
+                              )
+
+# result2 = PolygonRrClusterG (cor = cor,nodeGroup =group2 )
+node = result2[[1]]
+# ---node节点注释#-----------
+nodes = nodeadd(plotcord =node,otu_table = otu_table,tax_table = tax_table)
+#-----计算边#--------
+edge = edgeBuild(cor = cor,node = node)
+### 出图
+pnet <- ggplot() + geom_segment(aes(x = X1, y = Y1, xend = X2, yend = Y2,color = as.factor(cor)),
+                                data = edge, size = 0.5) +
+  geom_point(aes(X1, X2,fill = Phylum,size = mean),pch = 21, data = nodes) +
+  scale_colour_brewer(palette = "Set1") +
+  scale_x_continuous(breaks = NULL) + scale_y_continuous(breaks = NULL) +
+  # labs( title = paste(layout,"network",sep = "_"))+
+  # geom_text_repel(aes(X1, X2,label=Phylum),size=4, data = plotcord)+
+  # discard default grid + titles in ggplot2
+  theme(panel.background = element_blank()) +
+  # theme(legend.position = "none") +
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank()) +
+  theme(legend.background = element_rect(colour = NA)) +
+  theme(panel.background = element_rect(fill = "white",  colour = NA)) +
+  theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank())
+pnet
+# ggsave("cs5.pdf",pnet,width = 6,height = 5)
+```
+
+
+### 微生物分类可视化布局优化3 model_maptree_group
+
+用实心点作为每个模块布局方式2：model_maptree_group，智能布局不同分组之间的距离，在美学上特征更明显一点。
+
+```{R}
+
+set.seed(12)
+#-实心圆2
+result2 = model_maptree_group(cor = cor,
+                              nodeGroup = group2,
+                              )
+
+# result2 = PolygonRrClusterG (cor = cor,nodeGroup =group2 )
+node = result2[[1]]
+# ---node节点注释#-----------
+nodes = nodeadd(plotcord =node,otu_table = otu_table,tax_table = tax_table)
+#-----计算边#--------
+edge = edgeBuild(cor = cor,node = node)
+### 出图
+pnet <- ggplot() + geom_segment(aes(x = X1, y = Y1, xend = X2, yend = Y2,color = as.factor(cor)),
+                                data = edge, size = 0.5) +
+  geom_point(aes(X1, X2,fill = Phylum,size = mean),pch = 21, data = nodes) +
+  scale_colour_brewer(palette = "Set1") +
+  scale_x_continuous(breaks = NULL) + scale_y_continuous(breaks = NULL) +
+  # labs( title = paste(layout,"network",sep = "_"))+
+  # geom_text_repel(aes(X1, X2,label=Phylum),size=4, data = plotcord)+
+  # discard default grid + titles in ggplot2
+  theme(panel.background = element_blank()) +
+  # theme(legend.position = "none") +
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank()) +
+  theme(legend.background = element_rect(colour = NA)) +
+  theme(panel.background = element_rect(fill = "white",  colour = NA)) +
+  theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank())
+pnet
+
+# ggsave("cs6.pdf",pnet,width = 6,height = 5)
+```
+
+
+## 按照网络分析模块化信息作为分组探索布局
+
+### 模块布局算法 model_maptree_group
+
+按照物种组成分类完成网络分析其实并不常用，更多的是按照模块分组，进行网络可视化。
+
+
+```{R}
+#--导入所需R包#-------
+library(phyloseq)
+library(igraph)
+library(network)
+library(sna)
+library(tidyverse)
+library(ggClusterNet)
+
+#----------计算相关#----
+result = cor_Big_micro2 (ps = ps,
+                   N = 500,
+                   met.scale = "TMM",
+                   r.threshold=0.7,
+                   p.threshold=0.05,
+                   method = "spearman"
+                   )
+#--提取相关矩阵
+cor = result[[1]]
+
+#--modulGroup函数用于计算模块并整理成分组信息
+netClu  = modulGroup( cor = cor,cut = NULL,method = "cluster_fast_greedy" )
+
+head(netClu)
+
+#-网络中包含的OTU的phyloseq文件提取
+ps_net = ps %>% subset_taxa.wt("OTU",colnames(cor))
+#-导出otu表格
+otu_table = ps_net %>% 
+  vegan_otu() %>%
+  t() %>%
+  as.data.frame()
+
+tax = ps_net %>% 
+  vegan_tax() %>%
+  as.data.frame()
+tax$filed = tax$Phylum
+
+
+
+# group2 <- data.frame(ID = row.names(cor),group = netClu$group)
+# group2$group  =as.factor(group2$group)
+# head(group2)
+result2 = model_maptree_group(cor = cor,
+                              nodeGroup = netClu,
+                              )
+
+# result2 = PolygonRrClusterG (cor = cor,nodeGroup =group2 )
+node = result2[[1]]
+head(node)
+
+# ---node节点注释#-----------
+nodes = nodeadd(plotcord =node,otu_table = otu_table,tax_table = tax)
+
+
+nodes2 = nodes %>% inner_join(netClu,by = c("elements" = "ID"))
+nodes2$group = paste("Model_",nodes2$group,sep = "")
+head(nodes2)
+
+#-----计算边#--------
+edge = edgeBuild(cor = cor,node = node)
+
+### 出图
+ pnet <- ggplot()+ geom_segment(aes(x = X1, y = Y1, xend = X2, yend = Y2,color =   as.factor(cor)),
+                                 data = edge, size = 0.5,alpha = 0.1) +
+  geom_point(aes(X1, X2,fill = group,size = mean),pch = 21, data = nodes2) +
+  scale_colour_brewer(palette = "Set1") +
+  scale_x_continuous(breaks = NULL) + scale_y_continuous(breaks = NULL) +
+  # labs( title = paste(layout,"network",sep = "_"))+
+  # geom_text_repel(aes(X1, X2,label=Phylum),size=4, data = plotcord)+
+  # discard default grid + titles in ggplot2
+  theme(panel.background = element_blank()) +
+  # theme(legend.position = "none") +
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank()) +
+  theme(legend.background = element_rect(colour = NA)) +
+  theme(panel.background = element_rect(fill = "white",  colour = NA)) +
+  theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank())
+pnet
+
+# ggsave("cs7.pdf",pnet,width = 6,height = 5)
+
+```
+
+
+### 模块布局算法 model_maptree2
+
+
+使用升级的model_maptree2：不在可以将每个模块独立区分，而是将模块聚拢，并在整体布局上将离散的点同这些模块一同绘制到同心圆内。控制了图形的整体布局为圆形。
+
+
+```{R}
+
+result2 = model_maptree2(cor = cor,
+                              method = "cluster_fast_greedy"
+                              )
+
+# result2 = PolygonRrClusterG (cor = cor,nodeGroup =group2 )
+node = result2[[1]]
+
+# ---node节点注释#-----------
+nodes = nodeadd(plotcord =node,otu_table = otu_table,tax_table = tax)
+head(nodes)
+
+nodes2 = nodes %>% inner_join(netClu,by = c("elements" = "ID"))
+nodes2$group = paste("Model_",nodes2$group,sep = "")
+
+#-----计算边#--------
+edge = edgeBuild(cor = cor,node = node)
+
+### 出图
+pnet <- ggplot() + geom_segment(aes(x = X1, y = Y1, xend = X2, yend = Y2,color = as.factor(cor)),
+                                data = edge, size = 1,alpha = 0.1) +
+  geom_point(aes(X1, X2,fill = group,size = mean),pch = 21, data = nodes2) +
+  scale_colour_brewer(palette = "Set1") +
+  scale_x_continuous(breaks = NULL) + scale_y_continuous(breaks = NULL) +
+  theme(panel.background = element_blank()) +
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank()) +
+  theme(legend.background = element_rect(colour = NA)) +
+  theme(panel.background = element_rect(fill = "white",  colour = NA)) +
+  theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank())
+pnet
+
+
+```
+
+
+
+### 模块布局算法：model_igraph2布局
+
+这个布局最近几年文章上使用非常多。
+
+```{R,fig.width = 10,fig.height = 8}
+
+# cor_Big_micro2 增加了标准化方法和p值矫正方法
+result = cor_Big_micro2(ps = ps,
+                       N = 500,
+                       r.threshold=0.85,
+                       p.threshold=0.05,
+                       method = "pearson",
+                       scale = FALSE
+)
+
+#--提取相关矩阵
+cor = result[[1]]
+dim(cor)
+
+# model_igraph2
+result2 <- model_igraph2(cor = cor,
+                         method = "cluster_fast_greedy",
+                         seed = 12
+)
+node = result2[[1]]
+dim(node)
+
+
+dat = result2[[2]]
+head(dat)
+tem = data.frame(mod = dat$model,col = dat$color) %>%  
+  dplyr::distinct( mod, .keep_all = TRUE)  
+col = tem$col
+names(col) = tem$mod
+
+#---node节点注释#-----------
+otu_table = as.data.frame(t(vegan_otu(ps)))
+tax_table = as.data.frame(vegan_tax(ps))
+nodes = nodeadd(plotcord =node,otu_table = otu_table,tax_table = tax_table)
+head(nodes)
+#-----计算边#--------
+edge = edgeBuild(cor = cor,node = node)
+colnames(edge)[8] = "cor"
+head(edge)
+
+
+tem2 = dat %>% 
+  dplyr::select(OTU,model,color) %>%
+  dplyr::right_join(edge,by =c("OTU" = "OTU_1" ) ) %>%
+  dplyr::rename(OTU_1 = OTU,model1 = model,color1 = color)
+head(tem2)
+
+tem3 = dat %>% 
+  dplyr::select(OTU,model,color) %>%
+  dplyr::right_join(edge,by =c("OTU" = "OTU_2" ) ) %>%
+  dplyr::rename(OTU_2 = OTU,model2 = model,color2 = color)
+head(tem3)
+
+tem4 = tem2 %>%inner_join(tem3)
+head(tem4)
+
+edge2 = tem4 %>% mutate(color = ifelse(model1 == model2,as.character(model1),"across"),
+                        manual = ifelse(model1 == model2,as.character(color1),"#C1C1C1")
+                        )
+
+
+col_edge = edge2 %>% dplyr::distinct(color, .keep_all = TRUE)  %>% 
+  select(color,manual)
+col0 = col_edge$manual
+names(col0) = col_edge$color
+
+library(ggnewscale)
+
+p1 <- ggplot() + geom_segment(aes(x = X1, y = Y1, xend = X2, yend = Y2,color = color),
+                              data = edge2, size = 1) +
+  scale_colour_manual(values = col0) 
+
+p2 = p1 +
+   new_scale_color() +
+  geom_point(aes(X1, X2,color =model), data = dat,size = 4) +
+  scale_colour_manual(values = col) +
+  scale_x_continuous(breaks = NULL) + scale_y_continuous(breaks = NULL) +
+  theme(panel.background = element_blank()) +
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank()) +
+  theme(legend.background = element_rect(colour = NA)) +
+  theme(panel.background = element_rect(fill = "white",  colour = NA)) +
+  theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank())
+p2
+
+```
+
+
+
+## 第二章3.4：网络性质
+
+### 网络属性和节点属性
+
+
+### 网络性质计算
+
+22年6月升级后版本包括了16项网络属性，包括周集中老师21年NCC文章中全部属性
+
+```{R}
+data(igraph)
+dat = net_properties(igraph)
+head(dat)
+# 升级后包含的网络属性更多
+dat = net_properties.2(igraph,n.hub = TRUE)
+head(dat,n = 16)
+
+dat = net_properties.3(igraph,n.hub = TRUE)
+head(dat,n = 16)
+
+# 增加了网络模块性（modularity.net ）和随机网络模块性（modularity_random ）
+dat = net_properties.4(igraph,n.hub = F)
+head(dat,n = 16)
+
+```
+
+
+### 节点性质计算
+
+
+```{R}
+
+nodepro = node_properties(igraph)
+head(nodepro)
+
+
+```
+
+
+### Zipi基于模块对OTU进行分类
+
+
+```{R}
+
+result = cor_Big_micro2(ps = ps,
+                       N = 500,
+                       r.threshold=0.6,
+                       p.threshold=0.05,
+                       # method = "pearson",
+                       scale = FALSE
+)
+
+#--提取相关矩阵
+cor = result[[1]]
+
+result4 = nodeEdge(cor = cor)
+#提取变文件
+edge = result4[[1]]
+#--提取节点文件
+node = result4[[2]]
+igraph  = igraph::graph_from_data_frame(edge, directed = FALSE, vertices = node)
+res = ZiPiPlot(igraph = igraph,method = "cluster_fast_greedy")
+p <- res[[1]]
+p
+
+# ggsave("./cs2.pdf",p,width = 8,height = 7)
+
+```
+
+
+
+
+### 对应随机网络构建和网络参数比对
+
+
+```{R}
+
+result = random_Net_compate(igraph = igraph, type = "gnm", step = 100, netName = layout)
+p1 = result[[1]]
+
+sum_net = result[[4]]
+p1
+head(sum_net)
+# ggsave("./cs3.pdf",p1,width = 5,height = 4)
+
+```
+
+### 第二章3.6：扩展-关键OTU挑选
+
+Hub节点是在网络中与其他节点连接较多的节点，Hub微生物就是与其他微生物联系较为紧密的微生物，可以称之为关键微生物（keystone）
+
+
+```{R}
+
+hub = hub_score(igraph)$vector %>%
+  sort(decreasing = TRUE) %>%
+  head(5) %>%
+  as.data.frame()
+
+colnames(hub) = "hub_sca"
+
+ggplot(hub) +
+  geom_bar(aes(x = hub_sca,y = reorder(row.names(hub),hub_sca)),stat = "identity",fill = "#4DAF4A")
+
+
+# ggsave("./cs2.pdf",width = 5,height = 4)
+
+```
+
+
+
+# 第三章：微生物网络分析流程
+
+## 第三章3.1：微生物组小群落网络流程model_Gephi.2
+
+使用network函数运行微生物网络全套分析：
+
+- 使用OTU数量建议少于250个，如果OTU数量为250个，同时计算zipi，整个运算过程为3-5min。
+
+
+```{R,fig.width = 12,fig.height = 6}
+
+# data("ps16s")
+path = "./result_micro_200_1/"
+dir.create(path)
+
+result = network(ps = ps,
+                 N = 200,
+                layout_net = "model_Gephi.2",
+                 r.threshold=0.6,
+                 p.threshold=0.05,
+                 label = FALSE,
+                 path = path,
+                 zipi = TRUE)
+
+# 多组网络绘制到一个面板
+p = result[[1]]
+p
+# 全部样本网络参数比对
+data = result[[2]]
+
+
+plotname1 = paste(path,"/network_all.jpg",sep = "")
+ggsave(plotname1, p,width = 48,height = 16,dpi = 72)
+
+plotname1 = paste(path,"/network_all.pdf",sep = "")
+ggsave(plotname1, p,width = 48,height = 16)
+
+
+tablename <- paste(path,"/co-occurrence_Grobel_net",".csv",sep = "")
+write.csv(data,tablename)
+
+```
+
+
+
+## 第三章3.2：微生物大网络
+
+### 大网络常用布局：model_maptree2
+
+大网络运算时间会比较长，这里我没有计算zipi，用时5min完成全部运行。
+N=0，代表用全部的OTU进行计算。
+
+- 3000个OTU不计算zipi全套需要18min。
+
+```{R,fig.width = 12,fig.height = 6}
+
+path = "./result_big_1000_2/"
+dir.create(path)
+
+result = network.2(ps = ps,
+                 N = 1000,
+                 big = TRUE,
+                 maxnode = 5,
+                 select_layout = TRUE,
+                  layout_net = "model_maptree2",
+                 r.threshold=0.6,
+                 p.threshold=0.05,
+                 label = FALSE,
+                 path = path,
+                 zipi = FALSE)
+
+# 多组网络绘制到一个面板
+p = result[[1]]
+p
+# 全部样本网络参数比对
+data = result[[2]]
+num= 3
+# plotname1 = paste(path,"/network_all.jpg",sep = "")
+# ggsave(plotname1, p,width = 16*num,height = 16,dpi = 72)
+
+plotname1 = paste(path,"/network_all.pdf",sep = "")
+ggsave(plotname1, p,width = 10*num,height = 10,limitsize = FALSE)
+
+tablename <- paste(path,"/co-occurrence_Grobel_net",".csv",sep = "")
+write.csv(data,tablename)
+
+```
+
+### 大网络常用布局：model_igraph
+
+```{R,fig.width = 12,fig.height = 6}
+
+path = "./result_1000_igraph/"
+dir.create(path)
+# map = sample_data(ps)
+# map$Group = "one"
+# sample_data(ps16s) = map
+result = network.2(ps = ps16s,
+                 N = 1000,
+                 big = TRUE,
+                 maxnode = 5,
+                 select_layout = TRUE,
+                  layout_net = "model_igraph",
+                 r.threshold=0.4,
+                 p.threshold=0.01,
+                 label = FALSE,
+                 path = path,
+                 zipi = FALSE)
+
+# 多组网络绘制到一个面板
+p = result[[1]]
+# 全部样本网络参数比对
+data = result[[2]]
+num= 3
+# plotname1 = paste(path,"/network_all.jpg",sep = "")
+# ggsave(plotname1, p,width = 16*num,height = 16,dpi = 72)
+
+plotname1 = paste(path,"/network_all.pdf",sep = "")
+ggsave(plotname1, p,width = 16*num,height = 16,limitsize = FALSE)
+
+tablename <- paste(path,"/co-occurrence_Grobel_net",".csv",sep = "")
+write.csv(data,tablename)
+
+```
+
+### 大网络常用布局：model_igraph2-network.i
+
+model_igraph2在model_igraph的基础上去除了离散点，这对于重复数量少的研究比较有利，可以更加清楚的展示小样本网络。
+
+network.i函数专门为model_igraph2算法而写，可以额外输出模块上色的网络。
+
+
+```{R,fig.width = 12,fig.height = 6}
+
+path = "./result_1000_igraph2_2/"
+dir.create(path)
+
+# map = sample_data(ps)
+# map$Group = "one"
+# sample_data(ps16s) = map
+
+result = network.i(ps =  ps,
+                   N = 1000,
+                   r.threshold=0.9,
+                   big = T,
+                   select_layout = T,
+                   method = "pearson",
+                   scale = FALSE,
+                   layout_net = "model_igraph2",
+                   p.threshold=0.05,
+                   label = FALSE,
+                   path =path ,
+                   zipi = F,
+                   order = NULL
+                   )
+
+p1 = result[[1]]
+p1
+dat = result[[2]]
+tablename <- paste(path,"/co-occurrence_Grobel_net",".csv",sep = "")
+write.csv(dat,tablename)
+p = result[[5]]
+
+
+plotname1 = paste(path,"/network_all.pdf",sep = "")
+ggsave(plotname1, p1,width = 10,height = 3,limitsize = FALSE)
+
+plotname1 = paste(path,"/network_all2.pdf",sep = "")
+ggsave(plotname1, p,width = 25,height = 8,limitsize = FALSE)
+
+
+```
+
+
+
+# 第三章3.3：微生物跨域网络
+
+### 细菌，真菌三者跨域网络
+
+
+```{r,fig.width = 12,fig.height = 10}
+#--细菌和环境因子的网络#--------
+Envnetplot<- paste("./16s_ITS_Env_network_2",sep = "")
+dir.create(Envnetplot)
+
+ps16s =ps16s%>% ggClusterNet::scale_micro()
+psITS = psITS%>% ggClusterNet::scale_micro()
+
+
+#--细菌和真菌ps对象中的map文件要一样
+ps.merge <- ggClusterNet::merge16S_ITS(ps16s = ps16s,
+                                       psITS= psITS,
+                         NITS = 200,
+                         N16s = 200)
+
+map =  phyloseq::sample_data(ps.merge)
+head(map)
+map$Group = "one"
+phyloseq::sample_data(ps.merge) <- map
+
+#--环境因子导入
+data1 = env
+envRDA  = data.frame(row.names = env$ID,env[,-1])
+
+envRDA.s = vegan::decostand(envRDA,"hellinger")
+data1[,-1] = envRDA.s
+
+Gru = data.frame(ID = colnames(env)[-1],group = "env" )
+head(Gru)
+
+
+library(sna)
+library(ggClusterNet)
+library(igraph)
+
+result <- ggClusterNet::corBionetwork(ps = ps.merge,
+                        N = 0,
+                        r.threshold = 0.4, # 相关阈值
+                        p.threshold = 0.05,
+                        big = T,
+                        group = "Group",
+                        env = data1, # 环境指标表格
+                        envGroup = Gru,# 环境因子分组文件表格
+                        # layout = "fruchtermanreingold",
+                        path = Envnetplot,# 结果文件存储路径
+                        fill = "Phylum", # 出图点填充颜色用什么值
+                        size = "igraph.degree", # 出图点大小用什么数据
+                        scale = TRUE, # 是否要进行相对丰度标准化
+                        bio = TRUE, # 是否做二分网络
+                        zipi = F, # 是否计算ZIPI
+                        step = 100, # 随机网络抽样的次数
+                        width = 18,
+                        label = TRUE,
+                        height = 10
+)
+
+
+p = result[[1]]
+p
+# 全部样本网络参数比对
+data = result[[2]]
+plotname1 = paste(Envnetplot,"/network_all.jpg",sep = "")
+ggsave(plotname1, p,width = 15,height = 12,dpi = 72)
+# plotname1 = paste(Envnetplot,"/network_all.png",sep = "")
+# ggsave(plotname1, p,width = 10,height = 8,dpi = 72)
+plotname1 = paste(Envnetplot,"/network_all.pdf",sep = "")
+ggsave(plotname1, p,width = 15,height = 12)
+tablename <- paste(Envnetplot,"/co-occurrence_Grobel_net",".csv",sep = "")
+write.csv(data,tablename)
+
+```
+
+### 细菌-真菌-环境因子跨域网络
+
+```{R,fig.width = 12,fig.height = 10}
+
+#--细菌-环境因子网络#-----
+Envnetplot<- paste("./16sITS_Env_network",sep = "")
+dir.create(Envnetplot)
+# ps16s = ps0 %>% ggClusterNet::scale_micro()
+psITS = NULL
+
+#--细菌和真菌ps对象中的map文件要一样
+ps.merge <- ggClusterNet::merge16S_ITS(ps16s = ps16s,
+                                       psITS = NULL,
+                                       N16s = 500)
+ps.merge
+map =  phyloseq::sample_data(ps.merge)
+head(map)
+map$Group = "one"
+phyloseq::sample_data(ps.merge) <- map
+data(env)
+data1 = env
+envRDA  = data.frame(row.names = env$ID,env[,-1])
+
+envRDA.s = vegan::decostand(envRDA,"hellinger")
+data1[,-1] = envRDA.s
+
+Gru = data.frame(ID = colnames(env)[-1],group = "env" )
+head(Gru)
+
+
+# library(sna)
+# library(ggClusterNet)
+# library(igraph)
+
+result <- ggClusterNet::corBionetwork(ps = ps.merge,
+                                      N = 0,
+                                      r.threshold = 0.4, # 相关阈值
+                                      p.threshold = 0.05,
+                                      big = T,
+                                      group = "Group",
+                                      env = data1, # 环境指标表格
+                                      envGroup = Gru,# 环境因子分组文件表格
+                                      # layout = "fruchtermanreingold",
+                                      path = Envnetplot,# 结果文件存储路径
+                                      fill = "Phylum", # 出图点填充颜色用什么值
+                                      size = "igraph.degree", # 出图点大小用什么数据
+                                      scale = TRUE, # 是否要进行相对丰度标准化
+                                      bio = TRUE, # 是否做二分网络
+                                      zipi = F, # 是否计算ZIPI
+                                      step = 100, # 随机网络抽样的次数
+                                      width = 18,
+                                      label = TRUE,
+                                      height = 10
+)
+
+
+p = result[[1]]
+p
+# 全部样本网络参数比对
+data = result[[2]]
+plotname1 = paste(Envnetplot,"/network_all.jpg",sep = "")
+ggsave(plotname1, p,width = 13,height = 12,dpi = 72)
+
+plotname1 = paste(Envnetplot,"/network_all.pdf",sep = "")
+ggsave(plotname1, p,width = 13,height = 12)
+tablename <- paste(Envnetplot,"/co-occurrence_Grobel_net",".csv",sep = "")
+write.csv(data,tablename)
+
+```
+
+### 细菌-真菌跨域网络
+
+```{R}
+#---细菌和真菌OTU网络-域网络-二分网络#-------
+# 仅仅关注细菌和真菌之间的相关，不关注细菌内部和真菌内部相关
+
+Envnetplot<- paste("./16S_ITS_network",sep = "")
+dir.create(Envnetplot)
+
+
+data(psITS)
+#--细菌和真菌ps对象中的map文件要一样
+ps.merge <- ggClusterNet::merge16S_ITS(ps16s = ps16s,
+                                       psITS = psITS,
+                                       N16s = 500,
+                                       NITS = 500
+)
+
+ps.merge
+
+map =  phyloseq::sample_data(ps.merge)
+
+head(map)
+map$Group = "one"
+phyloseq::sample_data(ps.merge) <- map
+
+
+data =  data.frame(ID = c("fun_ASV_205","fun_ASV_316","fun_ASV_118"),
+                   c("Coremode","Coremode","Coremode"))
+
+# source("F:/Shared_Folder/Function_local/R_function/my_R_packages/ggClusterNet/R/corBionetwork2.R")
+
+
+result <- corBionetwork(ps = ps.merge,
+                        N = 0,
+                        lab = data,
+                        r.threshold = 0.8, # 相关阈值
+                        p.threshold = 0.05,
+                        group = "Group",
+                        # env = data1, # 环境指标表格
+                        # envGroup = Gru,# 环境因子分组文件表格
+                        # layout = "fruchtermanreingold",
+                        path = Envnetplot,# 结果文件存储路径
+                        fill = "Phylum", # 出图点填充颜色用什么值
+                        size = "igraph.degree", # 出图点大小用什么数据
+                        scale = TRUE, # 是否要进行相对丰度标准化
+                        bio = TRUE, # 是否做二分网络
+                        zipi = F, # 是否计算ZIPI
+                        step = 100, # 随机网络抽样的次数
+                        width = 12,
+                        label = TRUE,
+                        height = 10,
+                        big = TRUE,
+                        select_layout = TRUE,
+                        layout_net = "model_maptree2",
+                        clu_method = "cluster_fast_greedy"
+                        
+
+)
+
+
+tem <- model_maptree(cor =result[[5]],
+                     method = "cluster_fast_greedy",
+                     seed = 12
+)
+node_model = tem[[2]]
+head(node_model)
+
+p = result[[1]]
+p
+# 全部样本网络参数比对
+data = result[[2]]
+
+plotname1 = paste(Envnetplot,"/network_all.pdf",sep = "")
+ggsave(plotname1, p,width = 20,height = 19)
+tablename <- paste(Envnetplot,"/co-occurrence_Grobel_net",".csv",sep = "")
+write.csv(data,tablename)
+tablename <- paste(Envnetplot,"/node_model_imformation",".csv",sep = "")
+write.csv(node_model,tablename)
+
+tablename <- paste(Envnetplot,"/nodeG_plot",".csv",sep = "")
+write.csv(result[[4]],tablename)
+tablename <- paste(Envnetplot,"/edge_plot",".csv",sep = "")
+write.csv(result[[3]],tablename)
+tablename <- paste(Envnetplot,"/cor_matrix",".csv",sep = "")
+write.csv(result[[5]],tablename)
+
+```
+
+
+### 细菌-真菌-任意分类水平跨域网络
+
+```{R}
+
+#--细菌真菌任意分类水平跨域网络#----------
+library(tidyverse)
+# res1path = "result_and_plot/Micro_and_other_index_16s/"
+Envnetplot<- paste("./16S_ITS_network_Genus",sep = "")
+dir.create(Envnetplot)
+#--细菌和真菌ps对象中的map文件要一样
+ps.merge <- merge16S_ITS(ps16s = ps16s,
+                         psITS = psITS,
+                         N16s = 500,
+                         NITS = 500
+)
+ps.merge
+map =  phyloseq::sample_data(ps.merge)
+head(map)
+map$Group = "one"
+phyloseq::sample_data(ps.merge) <- map
+tem.0 = ps.merge %>% tax_glom_wt(ranks = 6)
+tax = tem.0 %>% vegan_tax() %>%
+  as.data.frame()
+head(tax)
+
+data =  data.frame(ID = c("Acaulium","Acidocella","Acrobeloides"),
+                   c("Acaulium","Acidocella","Acrobeloides"))
+
+result <- corBionetwork(ps = tem.0,
+                        N = 0,
+                        lab = data,
+                        r.threshold = 0.6, # 相关阈值
+                        p.threshold = 0.05,
+                        group = "Group",
+                        # env = data1, # 环境指标表格
+                        # envGroup = Gru,# 环境因子分组文件表格
+                        # layout = "fruchtermanreingold",
+                        path = Envnetplot,# 结果文件存储路径
+                        fill = "Phylum", # 出图点填充颜色用什么值
+                        size = "igraph.degree", # 出图点大小用什么数据
+                        scale = TRUE, # 是否要进行相对丰度标准化
+                        bio = TRUE, # 是否做二分网络
+                        zipi = F, # 是否计算ZIPI
+                        step = 100, # 随机网络抽样的次数
+                        width = 12,
+                        label = TRUE,
+                        height = 10,
+                        big = TRUE,
+                        select_layout = TRUE,
+                        layout_net = "model_maptree2",
+                        clu_method = "cluster_fast_greedy"
+                        
+                        
+)
+
+tem <- model_maptree(cor =result[[5]],
+                     method = "cluster_fast_greedy",
+                     seed = 12
+)
+node_model = tem[[2]]
+head(node_model)
+
+library(WGCNA)
+otu = tem.0 %>% vegan_otu() %>%
+  as.data.frame()
+node_model = node_model[match(colnames(otu),node_model$ID),]
+
+
+MEList = moduleEigengenes(otu, colors = node_model$group)
+MEs = MEList$eigengenes
+
+nGenes = ncol(otu)
+nSamples = nrow(otu)
+moduleTraitCor = cor(MEs, envRDA, use = "p")
+moduleTraitPvalue = corPvalueStudent(moduleTraitCor, nSamples)
+
+#sizeGrWindow(10,6)
+pdf(file=paste(Envnetplot,"/","Module-env_relationships.pdf",sep = ""),width=10,height=6)
+# Will display correlations and their p-values
+textMatrix = paste(signif(moduleTraitCor, 2), "\n(",
+                   signif(moduleTraitPvalue, 1), ")", sep = "")
+
+dim(textMatrix) = dim(moduleTraitCor)
+par(mar = c(6, 8.5, 3, 3))
+# Display the correlation values within a heatmap plot
+labeledHeatmap(Matrix = moduleTraitCor,
+               xLabels = names(envRDA),
+               yLabels = names(MEs),
+               ySymbols = names(MEs),
+               colorLabels = FALSE,
+               colors = greenWhiteRed(50),
+               textMatrix = textMatrix,
+               setStdMargins = FALSE,
+               cex.text = 0.5,
+               zlim = c(-1,1),
+               main = paste("Module-trait relationships"))
+dev.off()
+
+
+p = result[[1]]
+p
+# 全部样本网络参数比对
+data = result[[2]]
+
+
+plotname1 = paste(Envnetplot,"/network_all.pdf",sep = "")
+ggsave(plotname1, p,width = 10,height = 10)
+tablename <- paste(Envnetplot,"/co-occurrence_Grobel_net",".csv",sep = "")
+write.csv(data,tablename)
+
+
+tablename <- paste(Envnetplot,"/nodeG_plot",".csv",sep = "")
+write.csv(result[[4]],tablename)
+tablename <- paste(Envnetplot,"/edge_plot",".csv",sep = "")
+write.csv(result[[3]],tablename)
+tablename <- paste(Envnetplot,"/cor_matrix",".csv",sep = "")
+write.csv(result[[5]],tablename)
+
+```
+
+
+## 第三章3.4：网络流程新函数network.pip
+
+```{R}
+
+#--更新流程，自由度更高的网络分析流程
+library(tidyverse)
+library(ggClusterNet)
+library(phyloseq)
+library(igraph)
+
+#--sparcc方法计算相关矩阵#----
+tab.r = network.pip(
+  ps = ps,
+  N = 200,
+  # ra = 0.05,
+  big = FALSE,
+  select_layout = FALSE,
+  layout_net = "model_maptree2",
+  r.threshold = 0.6,
+  p.threshold = 0.05,
+  maxnode = 2,
+  method = "spearman",
+  label = FALSE,
+  lab = "elements",
+  group = "Group",
+  fill = "Phylum",
+  size = "igraph.degree",
+  zipi = TRUE,
+  ram.net = TRUE,
+  clu_method = "cluster_fast_greedy",
+  step = 100
+  # R=10,
+  # ncpus = 1
+  )
+
+#-提取全部图片的存储对象
+plot = tab.r[[1]]
+# 提取网络图可视化结果
+p0 = plot[[1]]
+#zipi
+p0.1 = plot[[2]]
+#--随机网络幂率分布
+p0.2 = plot[[3]]
+
+#--提取相关矩阵,这是一个list存储的相关矩阵
+dat = tab.r[[2]]
+cortab = dat$net.cor.matrix$cortab
+
+# 大型相关矩阵跑出来不容易，建议保存，方便各种网络性质的计算
+saveRDS(cortab,"cor.matrix.all.group.rds")
+cor = readRDS("./cor.matrix.all.group.eds")
+
+```
+
+
+### 网络显著性分析
+
+```{R}
+
+#--网络显著性比较#-----
+dat = module.compare.net.pip(
+  ps = NULL,
+  corg = cortab,
+  degree = TRUE,
+  zipi = FALSE,
+  r.threshold= 0.8,
+  p.threshold=0.05,
+  method = "spearman",
+  padj = F,
+  n = 3)
+res = dat[[1]]
+head(res)
+
+
+```
+
+### network.pip 结果如何定制
+
+```{R}
+#--网络自定义可视化#-----
+
+dat = tab.r[[2]]
+node = dat$net.cor.matrix$node
+edge = dat$net.cor.matrix$edge
+head(edge)
+
+p <- ggplot() + geom_segment(aes(x = X1, y = Y1, xend = X2, yend = Y2,color = cor
+                                  ),
+                              data = edge, size = 0.03,alpha = 0.1) +
+  geom_point(aes(X1, X2,
+                 fill = Phylum,
+                 size = igraph.degree),
+             pch = 21, data = node,color = "gray40") +
+  facet_wrap(.~ label,scales="free_y",nrow = 1) +
+  # geom_text_repel(aes(X1, X2,label = elements),pch = 21, data = nodeG) +
+  # geom_text(aes(X1, X2,label = elements),pch = 21, data = nodeG) +
+  scale_colour_manual(values = c("#6D98B5","#D48852")) +
+  # scale_fill_hue()+
+  scale_size(range = c(0.8, 5)) +
+  scale_x_continuous(breaks = NULL) +
+  scale_y_continuous(breaks = NULL) +
+  theme(panel.background = element_blank(),
+        plot.title = element_text(hjust = 0.5)
+  ) +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+  ) +
+  theme(legend.background = element_rect(colour = NA)) +
+  theme(panel.background = element_rect(fill = "white",  colour = NA)) +
+  theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank())
+p
+
+```
+
+### zipi结果定制
+
+```{R}
+
+#--zipi可视化-定制#-----
+dat.z = dat$zipi.data
+head(dat.z)
+x1<- c(0, 0.62,0,0.62)
+x2<- c( 0.62,1,0.62,1)
+y1<- c(-Inf,2.5,2.5,-Inf)
+y2 <- c(2.5,Inf,Inf,2.5)
+lab <- c("peripheral",'Network hubs','Module hubs','Connectors')
+roles.colors <- c("#E6E6FA","#DCDCDC","#F5FFFA", "#FAEBD7")
+tab = data.frame(x1 = x1,y1 = y1,x2 = x2,y2 = y2,lab = lab)
+tem = dat.z$group %>% unique() %>% length()
+for ( i in 1:tem) {
+  if (i == 1) {
+    tab2 = tab
+  } else{
+    tab2 = rbind(tab2,tab)
+  }
+}
+
+
+p <- ggplot() +
+  geom_rect(data=tab2,
+            mapping=aes(xmin=x1,
+                        xmax=x2,
+                        ymin=y1,
+                        ymax=y2,
+                        fill = lab))+
+  guides(fill=guide_legend(title="Topological roles")) +
+  scale_fill_manual(values = roles.colors)+
+  geom_point(data=dat.z,aes(x=p, y=z,color=module)) + theme_bw()+
+  guides(color= F) +
+  ggrepel::geom_text_repel(data = dat.z,
+                           aes(x = p, y = z,
+                               color = module,label=label),size=4)+
+  # facet_wrap(.~group) +
+  facet_grid(.~ group, scale='free') +
+  theme(strip.background = element_rect(fill = "white"))+
+  xlab("Participation Coefficient")+ylab(" Within-module connectivity z-score")
+p
+```
+
+### 网络与随机网络比对
+
+```{R}
+
+# --随机网络，幂率分布#-------
+dat.r = dat$random.net.data
+
+p3 <- ggplot(dat.r) +
+  geom_point(aes(x = ID,y = network,
+                 group =group,fill = group),pch = 21,size = 2) +
+  geom_smooth(aes(x = ID,y = network,group =group,color = group))+
+  facet_grid(.~g,scales = "free") +
+  theme_bw() + theme(
+    plot.margin=unit(c(0,0,0,0), "cm")
+  )
+p3
+```
+
+
+# 第三章3.5：依托network.pip结果加速网络稳定性计算
+
+### 使用network.pip输出的相关矩阵缩短网络稳定性计算时间
+
+
+```{R}
+
+# 网络稳定性#--------
+##--模块比对#-----
+library(tidyfst)
+
+res1 = module.compare.m(
+  ps = NULL,
+  corg = cortab,
+  zipi = FALSE,
+  zoom = 0.9,
+  padj = F,
+  n = 3)
+#不同分组使用一个圆圈展示，圆圈内一个点代表一个模块，相连接的模块代表了相似的模块。
+p1 = res1[[1]]
+p1
+#--提取模块的OTU，分组等的对应信息
+dat1 = res1[[2]]
+head(dat1)
+#模块相似度结果表格
+dat2 = res1[[3]]
+dat2$m1 = dat2$module1 %>% strsplit("model") %>%
+  sapply(`[`, 1)
+dat2$m2 = dat2$module2 %>% strsplit("model") %>%
+  sapply(`[`, 1)
+dat2$cross = paste(dat2$m1,dat2$m2,sep = "_Vs_")
+# head(dat2)
+dat2 = dat2 %>% filter(module1 != "none")
+
+p2 = ggplot(dat2) + geom_bar(aes(x = cross,fill = cross)) +
+  labs(x = "",
+       y = "numbers.of.similar.modules"
+  )+ theme_classic()
+
+p2
+
+#---去除关键节点-网络鲁棒性#-----
+# 鲁棒性计算需要物种丰富，所以即使计算好了相关矩阵，也需要输入ps对象
+library(patchwork)
+res2= Robustness.Targeted.removal(ps = ps,
+                                 corg = cortab,
+                                 degree = TRUE,
+                                 zipi = FALSE
+)
+p3 = res2[[1]]
+p3
+#提取数据
+dat4 = res2[[2]]
+#--随即取出任意比例节点-网络鲁棒性#---------
+res3 = Robustness.Random.removal(ps = ps,
+                                corg = cortab,
+                                Top = 0
+)
+p4 = res3[[1]]
+p4
+#提取数据
+dat5 = res3[[2]]
+# head(dat5)
+
+#--计算负相关的比例#----
+res4 = negative.correlation.ratio(ps = ps16s,
+                                 corg = cortab,
+                                 # Top = 500,
+                                 degree = TRUE,
+                                 zipi = FALSE)
+
+p5 = res4[[1]]
+p5
+dat6 = res4[[2]]
+#-负相关比例数据
+# head(dat6)
+
+#----时间群落稳定性-只有pair样本使用#-----
+treat = ps %>% sample_data()
+treat$pair = paste( "A",c(rep(1:6,3)),sep = "")
+# head(treat)
+sample_data(ps) = treat
+#一般性的处理，没有时间梯度的，这里设定time为F，意味着每两个群落的组合都进行比较
+res5 = community.stability( ps = ps,
+                           corg = cortab,
+                           time = FALSE)
+p6 = res5[[1]]
+p6
+dat7 = res5[[2]]
+
+#--网络抗毁性#------
+library("pulsar")
+res6 = natural.con.microp (
+  ps = ps,
+  corg = cortab,
+  norm = TRUE,
+  end = 150,# 小于网络包含的节点数量
+  start = 0
+)
+p7 = res6[[1]]
+p7
+
+dat8  = res6[[2]]
+
+```
+
+### 基于输出矩阵运行网络模块化分析
+
+```{R}
+
+#--这里我们指定三个模块，绘制这三个模块物种组成图表
+# select.mod = c("model_1","model_2","model_3")
+select.mod ="no"# 可以选择展示那些模块编号从1开始，往后模块大小会逐渐见笑。
+plots = list() # 保存网络模块化展示结果
+plots2 = list()# 保存模块化展示结果2
+alldat = list()# 模块数据存储
+plots3 = list()# 模块物种组成
+plots4 = list()# 模块多样性
+alldat2 = list()# 模块物种组成数据
+alldat3 = list()# 模块多样性数据
+i  = 1
+for (i in 1:length(names(cortab))) {
+  # 模块网络展示#--------
+  resu  = module_display.2(
+    pst = ps,
+    corg = cortab[[names(cortab)[i]]],
+    select.mod = "no",#选择指定模块可视化
+    num = 5, # 模块包含OTU数量少于5个的不展示,
+    leg.col = 3
+  )
+
+  # 全部模块输出展示
+  p1 = resu[[1]]+ labs(title = names(cortab)[i]) +
+    theme(
+          plot.title = element_text(hjust=0.5),#title居中
+          plot.margin = unit(c(3,3,4,4),"lines")#绘画区域与边界的距离
+    )
+  p1
+  #--提取模块信息：这里区分好不同模块的OTU，以及每个模块包含的网络边的数量
+  dat = resu[[5]]
+  head(dat)
+
+  #--提取网络的边和节点表格
+  dat2 = resu[[6]]
+  # names(dat2)
+
+  #按照模块着色，模块之间的边着色为灰色展示整个网络。
+  p2 = resu[[3]] + labs(title = names(cortab)[i]) +
+    theme(
+          plot.title = element_text(hjust=0.5)
+    )
+  p2
+  alldat[[names(cortab)[i]]] = dat2
+  plots[[names(cortab)[i]]] = p1
+  plots2[[names(cortab)[i]]] = p2
+
+  #--模块信息，共有三列，第一列是OTU，第二列是吗模块的分类，第三列是模块捏的边数量
+  if (select.mod == "no") {
+    mod1 = resu$mod.groups 
+  } else{
+    mod1 = resu$mod.groups %>%
+      filter(group %in% select.mod)
+    head(mod1)
+  }
+  
+  #-计算模块物种组成信息
+  pst = ps %>%
+    subset_samples.wt("Group",names(cortab)[i]) %>%
+    subset_taxa.wt("OTU",colnames(cortab[[names(cortab)[i]]])) %>%
+    filter_taxa(function(x) sum(x ) > 0, TRUE) %>%
+    scale_micro("rela")
+
+  # #-选择模块的微生物组成#-------
+  # res = module_composition(pst = pst,mod1 = mod1,j = "Family")
+  # p3 = res[[1]]
+  # p3
+  
+  #按照属水平进行绘制
+  res = module_composition(pst = pst,mod1 = mod1,j = "Genus")
+  p3 = res[[1]]
+  p3
+  plots3[[names(cortab)[i]]] = p3
+  #---提取出图数据物种组成数据导出
+  ps.t = res[[3]]
+
+  otu = ps.t %>% vegan_otu() %>% t() %>%
+    as.data.frame()
+  # head(otu)
+  tax = ps.t %>% vegan_tax() %>%
+    as.data.frame()
+  # head(tax)
+  tab.res = cbind(otu,tax)
+  # head(tab.res)
+  alldat2[[names(cortab)[i]]] = tab.res
+  # 没有标准化的出图数据
+  tab.res.2 = res[[4]]$bundance
+  # head(tab.res.2)
+  # 标准化到100%的出图数据
+  tab.res.3 = res[[4]]$relaabundance
+  # head(tab.res.3)
+
+  #--模块信息，两列，第一列是OTU，第二列是模块的分类
+  # mod1 = resu$mod.groups %>%
+  #   dplyr::select(ID,group) %>%
+  #   dplyr::filter(group %in% select.mod)
+  # head(mod1)
+
+  #-选择模块的多样性#----
+  result = module_alpha (
+    ps = ps,
+    mod1 = mod1)
+
+  p5 = result[[1]]
+  p5
+  plots4[[names(cortab)[i]]] = p5
+  #--alpha多样性数据
+  plotd = result[[4]]$alpha
+  
+  alldat3[[names(cortab)[i]]] = plotd
+  
+  # alpha多样性显著性表格
+  sigtab = result[[4]]$sigtab
+
+}
+
+
+p1  = ggpubr::ggarrange(plotlist = plots,
+                        common.legend = FALSE, legend="right",ncol = 3,nrow = 1)
+p1
+ggsave("cs.pdf",p1,width = 25,height = 6)
+p2  = ggpubr::ggarrange(plotlist = plots2,
+                        common.legend = FALSE, legend="right",ncol = 3,nrow = 1)
+# p2
+# ggsave("cs.pdf",p2,width = 25,height = 5)
+
+p3  = ggpubr::ggarrange(plotlist = plots3,
+                        common.legend = FALSE, legend="right",ncol = 1,nrow =3)
+p3
+# ggsave("cs.pdf",p3,width = 25,height = 15)
+
+p4  = ggpubr::ggarrange(plotlist = plots4,
+                        common.legend = FALSE, legend="right",ncol = 1,nrow = 3)
+p4
+
+# ggsave("cs.pdf",p4,width = 35,height = 15)
+
+
+```
+
+### 基于多网络计算基于样本的网络属性
+
+```{R}
+
+
+#-基于单个样本进行网络属性计算和合并
+for (i in 1:length(names(cortab))) {
+  pst = ps %>%
+    subset_samples.wt("Group",names(cortab)[i]) %>%
+    subset_taxa.wt("OTU",colnames(cortab[[names(cortab)[i]]])) %>%
+    filter_taxa(function(x) sum(x ) > 0, TRUE) %>%
+    scale_micro("rela")
+
+  dat.f = netproperties.sample(pst = pst,cor = cortab[[names(cortab)[i]]])
+  head(dat.f)
+  if (i == 1) {
+    dat.f2 = dat.f
+  }else{
+    dat.f2 = rbind( dat.f2, dat.f)
+  }
+
+}
+```
+
+### 计算模块ZScore值用于与其他指标做相关
+
+
+```{R}
+
+
+# 每个模块丰度#------
+tab.f = list()
+for (i in 1:length(names(cortab))) {
+  dat = ZS.net.module(
+    pst = ps,
+    # Top = 500,
+    corg =  cortab[[names(cortab)[i]]],
+    r.threshold= 0.8,
+    p.threshold=0.05,
+    select.mod =  NULL
+  )
+  # head(dat)
+  map =sample_data(ps)
+  map$id = row.names(map)
+  map = map[,c("id","Group")]
+  data = map %>%
+    as.tibble() %>%
+    inner_join(dat,by = "id") %>%
+    dplyr::rename(group = Group)
+  head(data)
+  tab.f[[names(cortab)[i]]] = data
+}
+
+
+```
+
+
+# 第四章：网络群落稳定性（抗干扰性）
+
+
+### 模块相似度
+
+
+```{R,fig.width = 5,fig.height = 5}
+#--网络稳定性:模块相似性------
+# data(ps)
+
+library(tidyfst)
+
+res = module.compare.m(
+    ps = ps,
+    Top = 500,
+    degree = TRUE,
+    zipi = FALSE,
+    r.threshold= 0.8,
+    p.threshold=0.05,
+    method = "spearman",
+    padj = F,
+    n = 3)
+#不同分组使用一个圆圈展示，圆圈内一个点代表一个模块，相连接的模块代表了相似的模块。
+p = res[[1]]
+p
+#--提取模块的OTU，分组等的对应信息
+dat = res[[2]]
+head(dat)
+
+#模块相似度结果表格
+dat2 = res[[3]]
+head(dat2)
+
+```
+
+### 网络鲁棒性（随机去除节点）
+
+这里通过随机去除部分OTU，计算网络鲁棒性，代表网络抗干扰的能力。
+按照0.05的步长，每次去除5%的文生物，重新计算鲁棒性，知道最终全部去除。
+如果有分组列Group，则会按照分组进行鲁棒性计算，并且区分颜色绘制到一个面板中。
+计算鲁棒性这里使用丰度加成权重和不加权两种方式，左边是不加权，后侧是加权的结果。
+这里步长不可以修改，因为修改好像也没什么意思。
+
+```{R,fig.width = 7,fig.height = 4}
+
+#--随即取出任意比例节点-网络鲁棒性#---------
+res = Robustness.Random.removal(ps = ps,
+                                Top = 500,
+                                r.threshold= 0.8,
+                                p.threshold=0.05,
+                                method = "spearman"
+                                
+                                )
+
+
+p = res[[1]]
+
+p
+#提取数据
+dat = res[[2]]
+head(dat)
+
+```
+
+
+### 网络鲁棒性（去除关键节点）
+
+
+
+```{R,fig.width = 7,fig.height = 4}
+#---去除关键节点-网络鲁棒性#------
+res= Robustness.Targeted.removal(ps = ps,
+                                 Top = 500,
+                                 degree = TRUE,
+                                 zipi = FALSE,
+                                 r.threshold= 0.8,
+                                 p.threshold=0.05,
+                                 method = "spearman")
+p = res[[1]]
+p
+#提取数据
+dat = res[[2]]
+
+```
+
+
+### 负相关比例
+
+
+```{R,fig.width = 4,fig.height = 4}
+
+#--计算负相关的比例#----
+res = negative.correlation.ratio(ps = ps,
+                          Top = 500,
+                          degree = TRUE,
+                          zipi = FALSE,
+                          r.threshold= 0.8,
+                          p.threshold=0.05,
+                          method = "spearman")
+
+p = res[[1]]
+p
+dat = res[[2]]
+#-负相关比例数据
+head(dat)
+# dir.create("./negative_correlation_ratio/")
+# write.csv(dat,
+#           paste("./negative_correlation_ratio/","_negative_ratio_network.csv",sep = ""))
+
+```
+
+
+### 组成稳定性
+
+```{R,fig.width = 4,fig.height = 4}
+
+treat = ps %>% sample_data()
+treat$pair = paste( "A",c(rep(1:6,3)),sep = "")
+head(treat)
+sample_data(ps) = treat
+#一般性的处理，没有时间梯度的，这里设定time为F，意味着每两个群落的组合都进行比较
+res = community.stability( ps = ps,time = FALSE)
+p = res[[1]]
+p
+dat = res[[2]]
+
+# 如果是时间序列，会按照时间的单一流动性方向进行比较，自然就不是两两比对了。
+res = community.stability( ps = ps,time = TRUE)
+p = res[[1]]
+p
+
+```
+
+
+### 网络抗毁性
+
+网络抗毁性:使用了自然连通度的概念，用于反映网络稳定性.具体而言，通过在构建好的网络中移除里面的节点，并计算自然连通度。这样随着取出点的数量逐渐增多，就可以计算得到一连串的网络连通度。这个算法最先来自PNAS的文章：“Reduced microbial stability in the active layer is associated with carbon loss under alpine permafrost degradation”
+
+
+```{R,fig.width = 4,fig.height = 4}
+
+library(tidyfst)
+library("pulsar")
+library(ggClusterNet)
+library(phyloseq)
+library(tidyverse)
+
+res = natural.con.microp (
+    ps = ps,
+    Top = 200,
+    r.threshold= 0.5,
+    p.threshold=0.05,
+    method = "spearman",
+    norm = F,
+    end = 150,# 小于网络包含的节点数量
+    start = 0,
+    con.method = "pulsar"
+    )
+
+p = res[[1]]
+p
+dat  = res[[2]]
+
+```
+
+# 网络模块化
+
+
+### 展示网络模块
+
+这里我们通过指定模块
+
+
+```{R,fig.width = 6,fig.height = 4}
+library(ggClusterNet)
+library(igraph)
+library(ggClusterNet)
+library(tidyverse)
+library(phyloseq)
+# data(ps)
+
+
+resu  = module_display.2(
+  pst = ps,
+  r.threshold= 0.6,
+  p.threshold=0.05,
+  select.mod = c("model_1","model_2","model_3","model_4"),#选择指定模块可视化
+  Top = 500,
+  num = 5, # 模块包含OTU数量少于5个的不展示,
+  leg.col = 3
+)
+
+# 全部模块输出展示
+p1 = resu[[1]]
+p1
+
+#--提取率相关矩阵
+dat0 = resu[[4]]
+
+#--提取模块信息：这里区分好不同模块的OTU，以及每个模块包含的网络边的数量
+dat = resu[[5]]
+head(dat)
+
+#--提取网络的边和节点表格
+dat2 = resu[[6]]
+names(dat2)
+
+```
+
+指定的目标模块展示
+
+```{R,fig.width = 6,fig.height = 5}
+p2 = resu[[2]]
+p2
+
+```
+
+```{R,fig.width = 4,fig.height = 8}
+#按照模块着色，模块之间的边着色为灰色展示整个网络。
+p2 = resu[[3]]
+p2
+#--注意这个报错信息，为展示的空间不够大，拉一拉展示框即可
+# Error in grid.Call(C_convert, x, as.integer(whatfrom), as.integer(whatto),  :
+#   Viewport has zero dimension(s)
+```
+
+
+### 基于模块的微生物组成分析
+
+对微生物数据分好模块，使用模块分类的数据导入module_composition函数，即可作指定模块的物种组成。
+
+
+```{R,fig.width = 12,fig.height = 4}
+
+#--这里我们指定三个模块，绘制这三个模块物种组成图表
+select.mod = c("model_1","model_2","model_3")
+#--模块信息，共有三列，第一列是OTU，第二列是吗模块的分类，第三列是模块捏的边数量
+mod1 = resu$mod.groups %>% filter(group %in% select.mod)
+head(mod1)
+
+#-计算模块物种组成信息
+pst = ps %>%
+  filter_taxa(function(x) sum(x ) > 0, TRUE) %>%
+  scale_micro("rela") %>%
+  # subset_samples.wt("Group" ,id3[m]) %>%
+  filter_OTU_ps(500)
+
+#-选择模块的微生物组成，通过参数j选择不同的分类水平。
+res = module_composition(pst = pst,mod1 = mod1,j = "Family")
+p3 = res[[1]]
+p3
+#按照属水平进行绘制
+res = module_composition(pst = pst,mod1 = mod1,j = "Genus")
+p3 = res[[1]]
+p3
+
+#---提取出图数据物种组成数据导出
+ps.t = res[[3]]
+
+otu = ps.t %>% vegan_otu() %>% t() %>%
+  as.data.frame()
+# head(otu)
+tax = ps.t %>% vegan_tax() %>%
+  as.data.frame()
+# head(tax)
+tab.res = cbind(otu,tax)
+# head(tab.res)
+
+# 没有标准化的出图数据
+tab.res.2 = res[[4]]$bundance
+# head(tab.res.2)
+# 标准化到100%的出图数据
+tab.res.3 = res[[4]]$relaabundance
+# head(tab.res.3)
+
+```
+
+
+### 模块计算alpha多样性
+
+这里将指定模块和ps对象输入函数module_alpha即可计算三种alpha多样性，这里调用了EasyStat包，使用非参数检验检测了alpha多样性的显著性。
+
+注意：这里的ps对象需要原始count数据，不可用标准化后的数据。
+
+```{R,fig.width = 12,fig.height = 4}
+
+
+#--这里我们指定三个模块，绘制这三个模块物种组成图表
+select.mod = c("model_1","model_2","model_3")
+
+#--模块信息，两列，第一列是OTU，第二列是模块的分类
+mod1 = resu$mod.groups %>% 
+  dplyr::select(ID,group) %>%
+  dplyr::filter(group %in% select.mod)
+head(mod1)
+
+#-选择模块的多样性
+result = module_alpha (
+  ps = ps,
+  mod1 = mod1)
+
+p5 = result[[1]]
+p5
+
+#--alpha多样性数据
+plotd = result[[4]]$alpha
+# alpha多样性显著性表格
+sigtab = result[[4]]$sigtab
+
+```
+
+
+
+# 基于单个样本计算网络属性
+
+这里我们需要输入微生物组数据的ps对象，其次，需要输入这组微生物的相关矩阵；然后netproperties.sample函数会按照单个样本计算网络属性；这里一共有15中网络属性。
+
+这里计算出来后便可以和其他指标进行相关性分析；
+
+```{R,fig.width = 12,fig.height = 12}
+
+library(ggClusterNet)
+library(igraph)
+library(ggClusterNet)
+library(tidyverse)
+library(phyloseq)
+data(ps)
+#-计算模块物种组成信息
+pst = ps %>%
+  filter_taxa(function(x) sum(x ) > 0, TRUE) %>%
+  scale_micro("rela") %>%
+  # subset_samples.wt("Group" ,id3[m]) %>%
+  filter_OTU_ps(500)
+
+# 选择和网络属性做相关的指标
+select.env = "env1"
+#--内置数据无需导入
+
+env = env1 %>% 
+  as.data.frame() %>%
+  rownames_to_column("id")
+dat.f = netproperties.sample(pst = pst,cor = cor)
+head(dat.f)
+
+
+dat.f$id = row.names(dat.f)
+dat.f = dat.f %>% dplyr:: select(id,everything())
+
+
+subenv = env %>% dplyr::select(id,everything()) %>% dplyr::select(id,select.env )
+tab = dat.f %>% left_join(subenv,by = "id")
+
+mtcars2 = reshape2::melt(tab, id.vars=c(select.env,"id"))
+lab = mean(mtcars2[,select.env])
+preoptab = tab
+  
+p0_1 = ggplot2::ggplot(mtcars2,aes(x= value,!!sym(select.env), colour=variable)) +
+    ggplot2::geom_point() +
+    ggpubr::stat_cor(label.y=lab*1.1)+
+    ggpubr::stat_regline_equation(label.y=lab*1.1,vjust = 2) +
+    facet_wrap(~variable, scales="free_x") +
+    geom_smooth(aes(value,!!sym(select.env), colour=variable), method=lm, se=T)+
+    theme_classic()
+
+p0_1
+
+```
+
+
+### 计算模块的Zscore值
+
+按照样本计算模块的ZS值，方便施用这一指标和其他相关指标进行相关性分析。
+
+
+```{R,fig.width = 12,fig.height = 12}
+
+
+dat = ZS.net.module(
+    pst = ps,
+    Top = 500,
+    r.threshold= 0.8,
+    p.threshold=0.05,
+    select.mod =  NULL
+    )
+# head(dat)
+
+
+map =sample_data(ps)
+map$id = row.names(map)
+map = map[,c("id","Group")]
+data = map %>%
+    as.tibble() %>%
+    inner_join(dat,by = "id") %>%
+    dplyr::rename(group = Group)
+
+colnames(env)[1] = "id"
+subenv = env %>% dplyr::select(id,everything()) %>% dplyr::select(id,select.env )
+# head(data)
+tab = data %>% left_join(subenv,by = "id")
+modenv = tab
+mtcars2 = reshape2::melt(tab, id.vars=c(select.env,"group","id"))
+mtcars2$variable
+head(mtcars2)
+lab = mean(mtcars2[,select.env])
+p1_1 = ggplot2::ggplot(mtcars2,aes(x= value,!!sym(select.env), colour=variable)) +
+    ggplot2::geom_point() +
+    ggpubr::stat_cor(label.y=lab*1.1)+
+    ggpubr::stat_regline_equation(label.y=lab*1.1,vjust = 2) +
+    facet_wrap(~variable, scales="free_x") +
+    geom_smooth(aes(value,!!sym(select.env), colour=variable), method=lm, se=T)+
+    theme_classic()
+
+p1_1
+
+```
+
+### 模块ZS值，网络属性，环境因子相关联合到一起
+
+```{R,fig.width = 7,fig.height = 5}
+
+#网络模块和环境因子相关-网络指标和环境相关
+dat.1 = env1 %>% rownames_to_column("id")
+res = net.property.module.env (
+  pst = pst,
+  Top = 500,
+  r.threshold= 0.8,
+  p.threshold=0.05,
+  env = dat.1,
+  select.mod = c("model_1","model_2","model_3"),
+  select.env = "env1")
+
+#--模块和环境因子之间相关
+p9 = res[[1]]
+p9
+
+```
+
+
+
+```{R,fig.width = 12,fig.height = 12}
+
+#-网络属性和环境因子相关
+p9 = res[[2]]
+p9
+
+```
+
+
+# 时空组:网络相关分析
+
+### 时空组：多组网络展示-网络性质稳定性等
+
+这部分更新与2023年1月27日完成，可能会存在bug等，如有问题即使告知我解决；
+
+
+
+这部分更新主要是为了解决一下几个问题：
+- 多个网络在一张图上需要调整映射颜色相同
+- 分组并不是只有一列，很多时候有时间序列，有空间部位等，优化参数使得时间序列等多个分组的研究展示更加顺畅；
+
+
+
+```{R,fig.width = 12,fig.height = 9}
+
+rm(list=ls())
+library(tidyverse)
+library(ggClusterNet)
+library(phyloseq)
+library(igraph)
+library(tidyfst)
+
+ps.st = readRDS("./ps_TS.rds")
+ps.st
+ps.st %>% sample_data() %>% head()
+
+#时空组网络-分面网络图-解决填充颜色不一致问题#----
+
+res = Facet.network (
+    ps.st= ps.st,# phyloseq对象
+    g1 = "Group",# 分组1
+    g2 = "space",# 分组2
+    g3 = "time",# 分组3
+    ord.g1 = c("WT","KO","OE"),# 排序顺序
+    ord.g2 = c("B","R") ,# 排序顺序
+    ord.g3 = c("T1","T2","T3") ,# 排序顺序
+    order = "time", # 出图每行代表的变量
+    fill = "Phylum",
+    size = "igraph.degree",
+    layout_net = "model_maptree2",
+    r.threshold=0.8,
+    p.threshold=0.01,
+    method = "spearman",
+    select_layout = TRUE,
+    clu_method = "cluster_fast_greedy",
+    maxnode = 5
+)
+
+p = res[[1]]
+
+p
+
+ggsave("cs1.pdf",p,width = 6*5,height = 4*3)
+
+#--时空组网络-网络性质#-------
+dat = net.pro.ts(dat = res[[2]][[1]])
+head(dat)
+
+```
+
+```{R}
+
+#--时空组的网络稳定性
+#--时空组-稳定性1模块比对#--------
+res = module.compare.m.ts(ps.st = ps.st, N = 200,
+  degree = TRUE,zipi = FALSE,r.threshold= 0.8,
+  p.threshold=0.05,method = "spearman",
+  padj = F,n = 3,
+  g1 = "Group",# 分组1
+  g2 = "space",# 分组2
+  g3 = "time",# 分组3
+  zoom = 0.3,# 控制小圈大小
+  b.x = 1.3,
+  b.y = 1.3)
+
+p = res[[1]]
+p
+#提取数据
+dat = res[[2]]
+#-作图数据提取
+dat = res[[3]]
+
+#时空组-稳定性2 鲁棒性随即取出#-----
+res = Robustness.Random.removal.ts(
+  ps.st = ps.st,
+  N = 200,
+  r.threshold= 0.8,
+  p.threshold=0.05,
+  method = "spearman",
+  order = "time",
+  g1 = "Group",
+  g2 = "space",
+  g3 = "time")
+
+#
+res[[1]][[1]]
+res[[1]][[2]]
+
+
+#时空组-稳定性2-2 鲁棒性随即取出#-----
+res = Robustness.Targeted.removal.ts(
+  ps.st,
+  N = 200,
+  degree = TRUE,
+  zipi = FALSE,
+  r.threshold= 0.8,
+  p.threshold=0.05,
+  method = "spearman",
+  order = "time",
+  g1 = "Group",# 分组1
+  g2 = "space",# 分组2
+  g3 = "time")
+
+res[[1]][[1]]
+res[[1]][[2]]
+
+```
+
+```{R,fig.width = 12,fig.height = 12}
+
+#时空组-稳定性3负相关比例#-------
+res = negative.correlation.ratio.ts(
+  ps.st,
+  N = 200,
+  r.threshold= 0.8,
+  p.threshold=0.05,
+  method = "spearman",
+  order = "time",
+  g1 = "Group",# 分组1
+  g2 = "space",# 分组2
+  g3 = "time",# 分组3
+  ord.g1 =NULL,# 排序顺序
+  ord.g2 = NULL, # 排序顺序
+  ord.g3 = NULL# 排序顺序
+)
+# 导出图片
+res[[1]]
+# 导出数据
+dat = res[[2]]
+head(dat)
+
+```
+
+
+```{R}
+
+
+#时空组-稳定性4 网络易损性#------
+library("pulsar")
+res = natural.con.microp.ts(
+  ps.st,
+  N = 200,
+  r.threshold= 0.8,
+  p.threshold=0.05,
+  method = "spearman",
+  order = "time",
+  g1 = "Group",# 分组1
+  g2 = "space",# 分组2
+  g3 = "time",# 分组3
+  ord.g1 =NULL,# 排序顺序
+  ord.g2 = NULL, # 排序顺序
+  ord.g3 = NULL,# 排序顺序
+  norm = F,
+  end = N -2,
+  start = 0,
+  con.method = "pulsar"
+
+)
+
+res[[1]]
+
+#时空组-稳定性5 组成稳定性#-------
+res = community.stability.ts(
+  ps.st = ps.st,
+  N = 200,
+  r.threshold= 0.8,
+  p.threshold=0.05,
+  method = "spearman",
+  order = "space",
+  g1 = "Group",# 分组1
+  g2 = "space",# 分组2
+  g3 = "time",# 分组3
+  map.art = NULL, # 人工输入的分组 默认为NULL
+  time = F,# 稳定性是否有时间序列
+  ord.map = TRUE# map文件是否是已经按照pair要求进行了排序
+)
+
+res[[1]]
+# res[[2]]
+
+```
+
+### 时空组:多网络单独绘制却填充相同颜色
+
+```{R,fig.width = 12,fig.height = 12}
+#---时空组双网络手动填充相同颜色#-------
+library(tidyverse)
+library(ggClusterNet)
+library(phyloseq)
+library(igraph)
+
+ps.st = readRDS("./ps_TS.rds")
+ps.st
+
+
+
+#-----第一组网络绘制
+
+res = Facet.network(
+  ps.st= ps.st,# phyloseq对象
+  g1 = "Group",# 分组1
+  g2 = "space",# 分组2
+  g3 = "time",# 分组3
+  ord.g1 = c("WT","KO","OE"),# 排序顺序
+  ord.g2 = c("B","R") ,# 排序顺序
+  ord.g3 = c("T1","T2","T3") ,# 排序顺序
+  order = "time", # 出图每行代表的变量
+  fill = "Phylum",
+  size = "igraph.degree",
+  layout_net = "model_maptree2",
+  r.threshold=0.8,
+  p.threshold=0.01,
+  method = "spearman",
+  select_layout = TRUE,
+  clu_method = "cluster_fast_greedy",
+  maxnode = 5
+)
+
+p = res[[1]]
+p
+
+
+
+
+#--指定颜色映射，为了多个图使用同一个颜色#-------
+
+
+
+#--设定的参数一致
+fill = "Phylum"
+size = "igraph.degree"
+maxnode = 5
+row.num = 2
+
+#-从结果中提取网络节点和边数据
+node  = res[[2]][[2]]
+head(node)
+edge = res[[2]][[3]]
+head(edge)
+
+cb_palette <- c("#ed1299", "#09f9f5", "#246b93", "#cc8e12", "#d561dd", "#c93f00", "#ddd53e",
+                "#4aef7b", "#e86502", "#9ed84e", "#39ba30", "#6ad157", "#8249aa", "#99db27", "#e07233", "#ff523f",
+                "#ce2523", "#f7aa5d", "#cebb10", "#03827f", "#931635", "#373bbf", "#a1ce4c", "#ef3bb6", "#d66551",
+                "#1a918f", "#ff66fc", "#2927c4", "#7149af" ,"#57e559" ,"#8e3af4" ,"#f9a270" ,"#22547f", "#db5e92",
+                "#edd05e", "#6f25e8", "#0dbc21", "#280f7a", "#6373ed", "#5b910f" ,"#7b34c1" ,"#0cf29a" ,"#d80fc1",
+                "#dd27ce", "#07a301", "#167275", "#391c82", "#2baeb5","#925bea", "#63ff4f")
+tem1 = node[,fill] %>% as.matrix() %>% as.vector() %>% unique()
+tabf = data.frame(id = tem1,color =cb_palette[1:length(tem1)] )
+head(tabf)
+colnames(tabf)[1] = fill
+node1 = node %>% left_join(tabf,by = fill)
+
+p2 <- ggplot() + geom_segment(aes(x = X1, y = Y1, xend = X2, yend = Y2,
+                                  color = cor),
+                              data = edge, size = 0.03,alpha = 0.5) +
+  geom_point(aes(X1, X2,
+                 size = !!sym(size),
+                 fill = color ),
+             pch = 21, data = node1,color = "gray40") +
+  facet_wrap(.~ label,scales="free_y",ncol = row.num ) +
+  # geom_text_repel(aes(X1, X2,label = elements),pch = 21, data = nodeG) +
+  # geom_text(aes(X1, X2,label = elements),pch = 21, data = nodeG) +
+  scale_colour_manual(values = c("#6D98B5","#D48852")) +
+  scale_fill_manual(values  = tabf$color,labels = tabf[,fill]) +
+  scale_size(range = c(0.8, maxnode)) +
+  scale_x_continuous(breaks = NULL) +
+  scale_y_continuous(breaks = NULL) +
+  theme(panel.background = element_blank(),
+        plot.title = element_text(hjust = 0.5)
+  ) +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+  ) +
+  theme(legend.background = element_rect(colour = NA)) +
+  theme(panel.background = element_rect(fill = "white",  colour = NA)) +
+  theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank())
+p2
+
+
+ggsave("cs1.pdf",p2,width = 5*2,height = 4*4)
+
+
+
+#-------另外一组网络绘制
+
+
+
+data(ps)
+
+res2 = Facet.network (
+  ps.st= ps,# phyloseq对象
+  g1 = "Group",# 分组1
+  # g2 = "space",# 分组2
+  # g3 = "time",# 分组3
+  ord.g1 = c("WT","KO","OE"),# 排序顺序
+  # ord.g2 = c("B","R") ,# 排序顺序
+  # ord.g3 = c("T1","T2","T3") ,# 排序顺序
+  order = "time", # 出图每行代表的变量
+  fill = "Phylum",
+  size = "igraph.degree",
+  layout_net = "model_maptree2",
+  r.threshold=0.8,
+  p.threshold=0.01,
+
+  method = "spearman",
+  select_layout = TRUE,
+  clu_method = "cluster_fast_greedy",
+  maxnode = 5
+)
+
+p3 = res2[[1]]
+p3
+
+#-提取节点和边数据
+node  = res2[[2]][[2]]
+head(node)
+edge = res2[[2]][[3]]
+head(edge)
+node$group %>% unique()
+
+```
+
+
+
+```{R,fig.width = 12,fig.height = 6}
+#----第二组网络用第一组颜色填充#---------
+
+
+tem1 = node[,fill] %>% as.matrix() %>% as.vector() %>% unique()
+tabf2 = data.frame(id = tem1 )
+colnames(tabf2)[1] = fill
+head(tabf2)
+# tabf2[1,1] = "wentao"
+tabf3 = tabf2 %>% left_join(tabf,by = fill)
+
+num = tabf3$color[is.na(tabf3$color)] %>% length()
+if (num == 0) {
+  tabf.f = tabf3
+}else{
+  tem = tabf3 %>% filter(is.na(color))
+  tem$color = setdiff(cb_palette,tabf$color)[1:length(tem$color)]
+  tabf.f = rbind(tabf3,tem)
+}
+
+colnames(tabf.f)[1] = fill
+node1 = node %>% left_join(tabf.f,by = fill)
+
+head(node1)
+
+
+p4 <- ggplot() + geom_segment(aes(x = X1, y = Y1, xend = X2, yend = Y2,
+                                  color = cor),
+                              data = edge, size = 0.03,alpha = 0.5) +
+  geom_point(aes(X1, X2,
+                 fill =color,
+                 size = !!sym(size)),
+             pch = 21, data = node1,color = "gray40") +
+  facet_wrap(.~ label,scales="free_y",ncol = row.num ) +
+  # geom_text_repel(aes(X1, X2,label = elements),pch = 21, data = nodeG) +
+  # geom_text(aes(X1, X2,label = elements),pch = 21, data = nodeG) +
+  scale_colour_manual(values = c("#6D98B5","#D48852")) +
+  scale_fill_manual(values  = tabf.f$color,labels = tabf.f[,fill]) +
+  scale_size(range = c(0.8, maxnode)) +
+  scale_x_continuous(breaks = NULL) +
+  scale_y_continuous(breaks = NULL) +
+  theme(panel.background = element_blank(),
+        plot.title = element_text(hjust = 0.5)
+  ) +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+  ) +
+  theme(legend.background = element_rect(colour = NA)) +
+  theme(panel.background = element_rect(fill = "white",  colour = NA)) +
+  theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank())
+# guides(fill=FALSE)
+p4
+ggsave("cs2.pdf",p4,width = 5*3,height = 4*1)
+```
+
+
+```{R,fig.width = 12,fig.height = 6}
+library(patchwork)
+p2|p4
+
+```
+
+
+# 第五章 其他功能
+
+
+## science组合图表
+
+```{R}
+
+
+
+
+library(phyloseq)
+library(ggClusterNet)
+library(tidyverse)
+
+
+ps
+
+
+
+env1
+
+
+
+
+
+otu1 = as.data.frame(t(ggClusterNet::vegan_otu(ps)))
+head(otu1)
+
+tabOTU1 = list(bac = otu1,
+               bac2 = otu1,
+               bac3 = otu1,
+               bac4 = otu1,
+               bac5 = otu1,
+               bac6 = otu1
+               )
+
+#----
+rep = MetalTast (env.dat = env1, tabOTU = tabOTU1)
+repR = rep[c(-seq(from=1,to=dim(rep)[2],by=2)[-1])]
+repP = rep[seq(from=1,to=dim(rep)[2],by=2)]
+
+lacx = "left"
+lacy = "bottom"
+
+
+
+res = Miccorplot2(data = env1,
+                 method.cor="spearman",
+                 cor.p = 0.05,
+                 x = FALSE,
+                 y = FALSE,
+                 diag = TRUE,
+                 lacx = "left",
+                 lacy = "bottom",
+                 sig = F,
+                 siglabel = FALSE,
+                 shownum = F,
+                 numpoint = 22,
+                 numsymbol = NULL
+
+)
+
+
+p1 =res[[1]]
+p1
+
+
+
+p11 = cor_link2(
+  data = res[[2]],# env table
+  p = res[[1]], # ggplot object
+  corva = 0.1,
+  envdata = repR,# R value table
+  Ptab = repP,#p value table
+  numpoint2 = 21,
+  curvature = 0.2,
+  range = 0.01,# line size
+  lacx = lacx,#  left or right
+  lacy = lacy,# top or bottom
+  p.thur = 0.5,#sig value
+  onlysig = FALSE # if show sig connect
+)
+
+p11
+
+
+
+
+otu1 = as.data.frame(t(ggClusterNet::vegan_otu(ps)))
+head(otu1)
+
+tabOTU1 = list(bac = otu1
+)
+
+#----
+rep = MetalTast (env.dat = env1, tabOTU = tabOTU1)
+repR = rep[c(-seq(from=1,to=dim(rep)[2],by=2)[-1])]
+repP = rep[seq(from=1,to=dim(rep)[2],by=2)]
+
+
+lacx = "right"
+lacy = "bottom"
+
+
+
+res = Miccorplot2(data = env1,
+                 method.cor="spearman",
+                 cor.p = 0.05,
+                 x = F,
+                 y = F,
+                 diag = TRUE,
+                 lacx = "right",
+                 lacy = "bottom",
+                 sig =F,
+                 siglabel = FALSE,
+                 shownum = TRUE,
+                 numpoint = 22,
+                 numsymbol = NULL
+)
+
+p2 =res[[1]]
+p2
+
+
+p22 = cor_link2(
+  data = res[[2]],# env table
+  p = res[[1]], # ggplot object
+  corva = -0.1,
+  envdata = repR,# R value table
+  Ptab = repP,#p value table
+  numpoint2 =21,
+  curvature = 0.2,
+  range = 0.1,# line size
+  lacx = lacx,#  left or right
+  lacy = lacy,# top or bottom
+  p.thur = 0.5,#sig value
+  onlysig = F # if show sig connect
+)
+
+
+p22
+
+lacx = "right"
+lacy = "top"
+
+
+res = Miccorplot2(data = env1,
+                 method.cor="spearman",
+                 cor.p = 0.05,
+                 x = FALSE,
+                 y = FALSE,
+                 diag = TRUE,
+                 lacx = "right",
+                 lacy = "top",
+                 sig = F,
+                 siglabel = FALSE,
+                 shownum = F,
+                 numpoint = 21,
+                 numsymbol = NULL
+
+)
+
+p3 =res[[1]]
+p3
+
+p33 = cor_link2(
+  data = res[[2]],# env table
+  p = res[[1]], # ggplot object
+  corva = 0,
+  envdata = repR,# R value table
+  Ptab = repP,#p value table
+  numpoint2 = 21,
+  curvature = 0.2,
+  range = 0.05,# line size
+  lacx = lacx,#  left or right
+  lacy = lacy,# top or bottom
+  p.thur = 0.5,#sig value
+  onlysig = F # if show sig connect
+)
+
+p33
+
+
+
+lacx = "left"
+lacy = "top"
+
+res = Miccorplot2(data = env1,
+                 method.cor="spearman",
+                 cor.p = 0.05,
+                 x = TRUE,
+                 y = TRUE,
+                 diag = F,
+                 lacx = "left",
+                 lacy = "top",
+                 sig = F,
+                 siglabel = FALSE,
+                 shownum = F,
+                 numpoint = 22,
+                 numsymbol = NULL
+)
+
+p4 =res[[1]]
+
+# remotes::install_github("xiangpin/ggsymbol")
+
+
+
+
+res = Miccorplot2(data = env1,
+                 method.cor="spearman",
+                 cor.p = 0.05,
+                 x = F,
+                 y = F,
+                 diag = T,
+                 lacx = "left",
+                 lacy = "top",
+                 sig = F,
+                 siglabel = FALSE,
+                 shownum = F,
+                 numpoint = NULL,
+                 numsymbol = 28
+)
+
+p4 =res[[1]]
+p4
+
+p44 = cor_link2(
+  data = res[[2]],# env table
+  p = res[[1]], # ggplot object
+  corva = -0.3,
+  envdata = repR,# R value table
+  Ptab = repP,#p value table
+  numpoint2 = 21,
+  curvature = 0.2,
+  range = 0.05,# line size
+  lacx = lacx,#  left or right
+  lacy = lacy,# top or bottom
+  p.thur = 0.5,#sig value
+  onlysig = F # if show sig connect
+)
+
+p44
+
+library(patchwork)
+
+p4/p1|p3/p2
+
+p0 = p44/p11|p33/p22
+ggsave("cs.pdf",p0,width = 16,height = 14)
+
+
+
+otu1 = as.data.frame(t(ggClusterNet::vegan_otu(ps)))
+head(otu1)
+tabOTU1 = list(bac = otu1)
+
+
+p0 <- MatCorPlot2(env.dat = env1,
+                  tabOTU = tabOTU1,
+                  corva = -0.05,
+                  diag = F,
+                  range = 0.05,
+                  numpoint = 21,
+                  numpoint2 = 22,
+                                sig = F,
+                                siglabel = FALSE,
+                                shownum = F,
+                                curvature = 0,
+                                numsymbol = NULL,
+                                lacx = "right",
+                                lacy = "bottom",
+                                p.thur = 0.5,
+                                onlysig = FALSE
+)
+
+p0
+
+
+
+
+
+```
+
+
+# 第六章：探索未知，网络世界
+
+## 重复数量随机抽样对网络构建过程的影响
+
+```{R}
+
+# 
+# 
+# #  这里要探讨什么问题呢？
+# # 重复数量对网络构建的影响
+# 
+# 同一个土壤的样本基本上都没有什么变化，发现重复在10个左右就可以基本上达到很好的状态了
+# 似乎没有必要持续测下去，没必要，增加重复数量网络整体结构和参数都差不多
+# 
+# 
+# # 测序深度对网络构建的影响
+# 
+# 深度越高，检测出来的相关性会越多，深度越低，可能会造成的假阳性，这可能是0值过多导致的，大量0值直接导致相关性接近1，无限逼近1
+# 这里虽然我们已经去除了大量的全零情况，但实际上有许多0也会导致大量假阳性.
+# 
+# 讨论：三个重复的数据为什么会计算出来大量的相关性为1或者-1的关系呢？
+# 相关性为1的大概率为这两个OTU都有大量的0 值，并且是对应的0值，啥意思呢，就是一个样本中这两个OTU都是0；
+#  负相关那就正好相反，一个OTU是0，另一个是1,这种完美的匹配。无论是哪种，基本上都是因为大量的小值和0值导致的
+#  表现到图上那就是集中的一个网络模块都是点，连线几乎看不见，因为相关性太高了。
+#  这样的结果也就是不能使用的，可以按照低丰度和相关性绝对值为1的标准去除这些关系。保证真实相关性。
+#  这种情况会随着测序深度增加和样本量的增多逐渐弱化,这里测试的结果基本上10个左右，就不存在这种情况了，
+# 但是这是在测序深度保证3w以上的情况下的。
+# 
+# 
+# 不同深度抽样增加重复性是否可以带来较好的网络构建过程
+# 这是可以的，不同深度的抽样会并且和原来数据合并起来，会增加相关性，但这些增加的基本上是假阳性，不推荐使用
+# 
+# 
+# 我们对一个土壤测定了63个重复，通过相同的网络分析发现了重复越多，网络能鉴定出来的相关性会越来越多
+#  这是为什么呢？这次我们测定的是一个土壤，并且使用搅拌机混匀的，也就意味着基本上微生物混合的很均匀
+#  这个时候基本上就算是抽样得到的结果了，也就是说我们的测试结果表明实际测样的生物学重复与我们的的模拟重复
+# 实际上是一样的。也就是说我们将样本混匀，只需要测两个重复就够了，因为得到的微生物群落基本上是不变的
+# 那么我们平时去测定那么多重复是为什么呢？实际上随着技术发展，深度逐渐增加，需要的样本数量越来越少了。
+#  这里就有一个问题，那么如此少的样本还能做网络分析吗？很明显不能，因为我们找到的没什么意思了，基本上都是成比例变化
+# 的，而不是真正具有相关关系的关系。
+# 
+#  所以如果我们真的要寻找土壤中互作关系，需要在不同条件下得到更多具有变化的样本才好说这些可能是真正的关系
+# 大家也都知道，网络基本上在生态中的，随着生态随机因素的变化，网络实际上可以求出一个很好的值，但是我们却很少能够说
+#  这一网络的某种特征与某个因素，环境，或者其他因素有关系。
+#  土壤微生物在土壤中的互作关系用共线性网络并不能解决，我们能尝试得到的无非是外界环境变化下，一同变化的微生物。如此
+# 我们也无法确定这些微生物是自己互作关系发生变化，还是受到环境独立的改变？
+# 所以我们应该如何寻找微生物之间的互作关系呢？这是一个大挑战！
+
+
+library(ggClusterNet)
+library(tidyverse)
+library(phyloseq)
+library(patchwork)
+
+# 统计最小的深度
+samplesize = min(phyloseq::sample_sums(ps))
+
+# 提取分组信息查看具体分组标签
+map = sample_data(ps)
+map$Group %>%  table() %>% as.data.frame()
+
+
+# 构造一个临时的网络分析函数，用于快速构建网络
+# ps.f %>% vegan_otu() %>% t() %>%
+#   as.data.frame() %>% rownames_to_column("id") %>%
+#   filter(id %in% c("ASV_4","ASV_43"))
+
+network.tem = function(ps.f,r = 0.8){
+  result = cor_Big_micro2(ps = ps.f,
+                          N = 500,
+                          r.threshold=0.8,
+                          p.threshold=0.05,
+                          method = "pearson",
+                          scale = FALSE
+  )
+
+  #--提取相关矩阵
+  cor = result[[1]]
+  dim(cor)
+
+
+  result2 <- model_igraph2(cor = cor,
+                           method = "cluster_fast_greedy",
+                           seed = 12
+  )
+  node = result2[[1]]
+  dim(node)
+
+
+  dat = result2[[2]]
+  head(dat)
+  tem = data.frame(mod = dat$model,col = dat$color) %>%
+    dplyr::distinct( mod, .keep_all = TRUE)
+  col = tem$col
+  names(col) = tem$mod
+
+  #---node节点注释#-----------
+  otu_table = as.data.frame(t(vegan_otu(ps)))
+  tax_table = as.data.frame(vegan_tax(ps))
+  nodes = nodeadd(plotcord =node,otu_table = otu_table,tax_table = tax_table)
+  head(nodes)
+  #-----计算边#--------
+  edge = edgeBuild(cor = cor,node = node)
+  colnames(edge)[8] = "cor"
+  head(edge)
+
+
+  tem2 = dat %>%
+    dplyr::select(OTU,model,color) %>%
+    dplyr::right_join(edge,by =c("OTU" = "OTU_1" ) ) %>%
+    dplyr::rename(OTU_1 = OTU,model1 = model,color1 = color)
+  head(tem2)
+
+  tem3 = dat %>%
+    dplyr::select(OTU,model,color) %>%
+    dplyr::right_join(edge,by =c("OTU" = "OTU_2" ) ) %>%
+    dplyr::rename(OTU_2 = OTU,model2 = model,color2 = color)
+  head(tem3)
+
+  tem4 = tem2 %>%inner_join(tem3)
+  head(tem4)
+
+  edge2 = tem4 %>% mutate(color = ifelse(model1 == model2,as.character(model1),"across"),
+                          manual = ifelse(model1 == model2,as.character(color1),"#C1C1C1")
+  )
+
+
+  col_edge = edge2 %>% dplyr::distinct(color, .keep_all = TRUE)  %>%
+    select(color,manual)
+  col0 = col_edge$manual
+  names(col0) = col_edge$color
+
+  library(ggnewscale)
+
+  p1 <- ggplot() + geom_segment(aes(x = X1, y = Y1, xend = X2, yend = Y2,color = color),
+                                data = edge2, size = 1) +
+    scale_colour_manual(values = col0)
+
+  # ggsave("./cs1.pdf",p1,width = 16,height = 14)
+  p2 = p1 +
+    new_scale_color() +
+    geom_point(aes(X1, X2,color =model), data = dat,size = 4) +
+    scale_colour_manual(values = col) +
+    scale_x_continuous(breaks = NULL) + scale_y_continuous(breaks = NULL) +
+    theme(panel.background = element_blank()) +
+    theme(axis.title.x = element_blank(), axis.title.y = element_blank()) +
+    theme(legend.background = element_rect(colour = NA)) +
+    theme(panel.background = element_rect(fill = "white",  colour = NA)) +
+    theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank())
+  p2
+}
+
+# 测序深度对网络构建的影响#-------
+# 对微生物组数据进行相对丰度标准化之后提取KO组进行网络构建
+ps.f = ps %>%
+  scale_micro() %>%
+  subset_samples.wt("Group","KO")
+p0 = network.tem(ps.f)
+
+ggsave("cs1.pdf",p0,width = 8,height = 7)
+
+#--我们降低测序深度，检测对网络的影响
+plots = list()
+
+step = c(0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1)
+
+for (n in 1:length(step)) {
+
+  ps.f = ps %>%
+    # scale_micro() %>%
+    subset_samples.wt("Group","KO")
+  ps.f2 = ps.f %>%
+    phyloseq::rarefy_even_depth(sample.size = min(sample_sums(ps.f))*step[n])
+
+  p1 = network.tem(ps.f2)
+  plots[[n]] = p1
+}
+
+# 通过查看深度基本上不影响相关，但是可能深度特别低会影响
+p2  = ggpubr::ggarrange(plotlist = plots,
+                        common.legend = FALSE, legend="right",ncol = 5,nrow = 2)
+p2
+
+ggsave("cs2.pdf",p2,width = 8*5,height = 7*2,limitsize = FALSE)
+
+#--极低深度测试
+plots = list()
+data(ps)
+step = c(0.001,0.003,0.005,0.008,0.01,0.1,0.3,0.5,0.7,1)
+
+n = 1
+
+for (n in 1:length(step)) {
+
+  ps.f = ps %>%
+    # scale_micro() %>%
+    subset_samples.wt("Group","KO")
+  ps.f2 = ps.f %>%
+    phyloseq::rarefy_even_depth(sample.size = min(sample_sums(ps.f))*step[n])%>%
+    filter_taxa(function(x) sum(x ) > 0 , TRUE)
+
+  p1 = network.tem(ps.f2) + labs(title = step[n]) +
+    theme(plot.title=element_text(hjust=0.5))
+  plots[[n]] = p1
+}
+
+# 这里就看到深度剩下三千一下，网络假阳性就逐渐出现了
+p2  = ggpubr::ggarrange(plotlist = plots,
+                        common.legend = FALSE, legend="right",ncol = 5,nrow = 2)
+p2
+
+ggsave("cs3.pdf",p2,width = 8*5,height = 7*2,limitsize = FALSE)
+
+
+# 调试到多少阈值，假阳性开始突增
+
+plots = list()
+
+step = c(0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.1,1)
+
+for (n in 1:length(step)) {
+
+  ps.f = ps %>%
+    # scale_micro() %>%
+    subset_samples.wt("Group","KO")
+  ps.f2 = ps.f %>%
+    phyloseq::rarefy_even_depth(sample.size = min(sample_sums(ps.f))*step[n])
+
+  p1 = network.tem(ps.f2) + labs(title = step[n]) +
+    theme(plot.title=element_text(hjust=0.5))
+  plots[[n]] = p1
+}
+
+# 这里看到基本上两千条序列一下做网络假阳性就会逐渐增加
+p2  = ggpubr::ggarrange(plotlist = plots,
+                        common.legend = FALSE, legend="right",ncol = 5,nrow = 2)
+p2
+
+ggsave("cs4.pdf",p2,width = 8*5,height = 7*2,limitsize = FALSE)
+
+
+
+
+#重复数量对网络构建的影响#------
+#-基于网络重复性过少的问题现在
+
+ps.f = ps %>%
+  scale_micro() %>%
+  subset_samples.wt("Group","KO")
+p0 = network.tem(ps.f)
+
+#--随机抽样三个样本的网络
+ps.f0 = random.add.ps(ps = ps,add = 3)
+ps.f = ps.f0 %>%
+  scale_micro() %>%
+  subset_samples.wt("Group","KO") %>%
+  filter_taxa(function(x) sum(x ) > 0 , TRUE)
+p1 = network.tem(ps =ps.f)
+p0|p1
+
+
+#--四个重复
+ps.f0 = random.add.ps(ps = ps,add = 4)
+ps.f = ps.f0 %>%
+  scale_micro() %>%
+  subset_samples.wt("Group","KO") %>%
+  filter_taxa(function(x) sum(x ) > 0 , TRUE)
+p2 = network.tem(ps.f)
+p0|p1|p2
+
+#--五个重复
+ps.f0 = random.add.ps(ps = ps,add = 5)
+ps.f = ps.f0 %>%
+  scale_micro() %>%
+  subset_samples.wt("Group","KO")%>%
+  filter_taxa(function(x) sum(x ) > 0 , TRUE)
+p3 = network.tem(ps.f)
+p0|p1|p2|p3
+
+#--六个重复
+ps.f0 = random.add.ps(ps = ps,add = 6,zoom = 0.3,addid = "")
+ps.f2 = ps.f0 %>%
+  # scale_micro() %>%
+  subset_samples.wt("Group","KO")%>%
+  filter_taxa(function(x) sum(x ) > 0 , TRUE)
+p4 = network.tem(ps.f2)
+p0|p1|p2|p3|p4
+
+
+
+#-七个重复
+ps.f0 = random.add.ps(ps = ps,add = 1)
+#--合并ps对象
+psf = merge_amp.dat(ps.a = ps,
+                    ps.m = ps.f0,
+                    rank = "OTU")
+
+ps.f = psf %>% subset_samples.wt("Group","KO") %>%
+  filter_taxa(function(x) sum(x ) > 0 , TRUE)
+
+o1 = network.tem(ps.f)
+
+p0|o1
+
+#-八个重复
+ps.f0 = random.add.ps(ps = ps,add = 2)
+#--合并ps对象
+psf = merge_amp.dat(ps.a = ps,
+                    ps.m = ps.f0,
+                    rank = "OTU")
+
+ps.f = psf %>% subset_samples.wt("Group","KO") %>%
+  filter_taxa(function(x) sum(x ) > 0 , TRUE)
+
+o2= network.tem(ps.f)
+
+p0|o1|o2
+
+#-十个重复
+ps.f0 = random.add.ps(ps = ps,add = 4)
+#--合并ps对象
+psf = merge_amp.dat(ps.a = ps,
+                    ps.m = ps.f0,
+                    rank = "OTU")
+
+ps.f = psf %>% subset_samples.wt("Group","KO")%>%
+  filter_taxa(function(x) sum(x ) > 0 , TRUE)
+
+o3 = network.tem(ps.f)
+
+p0|o1|o2|o3
+
+#-十二个重复
+ps.f0 = random.add.ps(ps = ps,add = 6)
+#--合并ps对象
+psf = merge_amp.dat(ps.a = ps,
+                    ps.m = ps.f0,
+                    rank = "OTU")
+
+ps.f = psf %>% subset_samples.wt("Group","KO")
+
+o4 = network.tem(ps.f)
+
+p0/p0|p1/o1|p2/o2|p3/o3|p4/o4
+
+
+# 上面增加的重复为模拟的，如果我实测数据，从3个重复到12个重复会怎么样？
+# 下面我们测了
+
+ps1 = readRDS("E:/Shared_Folder/Function_local/R_function/my_R_packages/ggClusterNet_Decument/测试网络构建的重复数量/ps.rds")
+
+map = sample_data(ps1)
+map$Group = map$SampleType
+map = map[paste0(60:126,"A")]
+map = data.frame(row.names = map$ID[!is.na(map$ID)],
+                 ID = map$ID[!is.na(map$ID)], Group = c("one.soil"))
+map$Group[2:30] = "two.soil"
+sample_data(ps1) = map
+ps1 = ps1 %>%  filter_taxa(function(x) sum(x ) > 0 , TRUE)
+saveRDS(ps1,"ps.63.rds")
+
+ps1 = readRDS("ps.63.rds")
+
+#--我们做一下排序看看这批数据分布
+source("E:\\Shared_Folder\\Function_local\\R_function\\micro/BetaDiv.R")
+source("E:\\Shared_Folder\\Function_local\\R_function\\micro/MicroTest.R")
+source("E:\\Shared_Folder\\Function_local\\R_function\\micro/pairMicroTest.R")
+result = BetaDiv(ps = ps1 %>%  filter_taxa(function(x) sum(x ) > 0 , TRUE) ,
+                 group = "Group", dist = "bray",
+                   method = "PCoA", Micromet = "anosim", pvalue.cutoff = 0.05,
+                   pair = FALSE)
+p3_1 = result[[3]]
+p3_1
+
+#--开始用这批数据，抽取不同的重复数量构建网络
+map = sample_data(ps1)
+map$Group = "one.soil"
+sample_data(ps1) = map
+ps1 = ps1 %>%  filter_taxa(function(x) sum(x ) > 0 , TRUE)
+
+
+ps.f = random.add.ps(ps = ps1,add = 63)
+u0 = network.tem(ps.f)
+
+
+plots = list()
+
+step = c(3,6,9,12,15,18,21,24,28,30,36,42,48,50,58,63)
+
+n = 4
+
+for (n in 1:length(step)) {
+
+  ps.f = random.add.ps(ps = ps1,add = step[n])%>%
+    filter_taxa(function(x) sum(x ) > 0 , TRUE)
+  u0 = network.tem(ps.f)+ labs(title = step[n]) +
+    theme(plot.title=element_text(hjust=0.5))
+  plots[[n]] = u0
+}
+
+# 这里我们看到3个重复还是会增加许多假阳性，但是6个以上似乎就好多了
+p2  = ggpubr::ggarrange(plotlist = plots,
+                        common.legend = FALSE, legend="right",ncol = 8,nrow = 2)
+p2
+ggsave("cs5.pdf",p2,width = 70,height = 15,limitsize = FALSE)
+
+
+
+# 这里按照1-12个数量再做一次抽样
+plots = list()
+
+step = c(3:12)
+
+for (n in 1:length(step)) {
+
+  ps.f = random.add.ps(ps = ps1,add = step[n])%>%
+    filter_taxa(function(x) sum(x ) > 0 , TRUE)
+  u0 = network.tem(ps.f)+ labs(title = step[n]) +
+    theme(plot.title=element_text(hjust=0.5))
+  plots[[n]] = u0
+}
+
+# 这里我们看到3个重复还是会增加许多假阳性，但是6个以上似乎就好多了
+p2  = ggpubr::ggarrange(plotlist = plots,
+                        common.legend = FALSE, legend="right",ncol = 5,nrow = 2)
+p2
+ggsave("cs6.pdf",p2,width = 40,height = 12,limitsize = FALSE)
+
+
+# 重复数量多了会增加很多弱相关，如果我们提高阈值
+
+plots = list()
+
+step = c(3:12)
+
+for (n in 1:length(step)) {
+
+  ps.f = random.add.ps(ps = ps1,add = step[n])%>%
+    filter_taxa(function(x) sum(x ) > 0 , TRUE)
+  u0 = network.tem(ps.f,r = 0.8)+ labs(title = step[n]) +
+    theme(plot.title=element_text(hjust=0.5))
+  plots[[n]] = u0
+}
+
+# 我们发现随着相关阈值改变，网络布局基本没有什么变化，全部是大相关
+p2  = ggpubr::ggarrange(plotlist = plots,
+                        common.legend = FALSE, legend="right",ncol = 5,nrow = 2)
+p2
+ggsave("cs7.pdf",p2,width = 40,height = 12,limitsize = FALSE)
+
+
+# 我们这这批数据在测试一次深度对网络的影响
+
+plots = list()
+
+step = c(0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1)
+
+for (n in 1:length(step)) {
+
+  ps.f = ps1 #%>%
+  # scale_micro() %>%
+  # subset_samples.wt("Group","KO")
+  ps.f2 = ps.f %>%
+    phyloseq::rarefy_even_depth(sample.size = min(sample_sums(ps.f))*step[n])
+
+  p1 = network.tem(ps.f2)
+  plots[[n]] = p1
+}
+
+# 新数据来看通过查看深度基本上不影响相关，但是可能深度特别低会影响
+p2  = ggpubr::ggarrange(plotlist = plots,
+                        common.legend = FALSE, legend="right",ncol = 5,nrow = 2)
+p2
+ggsave("cs8.pdf",p2,width = 40,height = 12,limitsize = FALSE)
+
+
+
+# 调整深度细点
+
+plots = list()
+
+step = c(0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.1,1)
+
+for (n in 1:length(step)) {
+
+  ps.f = ps
+  ps.f2 = ps.f %>%
+    phyloseq::rarefy_even_depth(sample.size = min(sample_sums(ps.f))*step[n])
+
+  p1 = network.tem(ps.f2) + labs(title = step[n]) +
+    theme(plot.title=element_text(hjust=0.5))
+  plots[[n]] = p1
+}
+
+# 深度降低，相关性减弱，也就是说有一部分微生物关系检测不到了
+#  其假阳性的区间似乎更低一下，如此多的样本的话
+p2  = ggpubr::ggarrange(plotlist = plots,
+                        common.legend = FALSE, legend="right",ncol = 5,nrow = 2)
+p2
+
+ggsave("cs9.pdf",p2,width = 40,height = 12,limitsize = FALSE)
+
+
+#--再次运行极低深度测试
+plots = list()
+
+step = c(0.001,0.003,0.005,0.008,0.01,0.1,0.3,0.5,0.7,1)
+
+n = 3
+for (n in 1:length(step)) {
+
+  ps.f = ps
+  ps.f2 = ps.f %>%
+    phyloseq::rarefy_even_depth(sample.size = min(sample_sums(ps.f))*step[n]) %>%
+    filter_taxa(function(x) sum(x ) > 0 , TRUE)
+
+  p1 = network.tem(ps.f2) + labs(title = step[n]) +
+    theme(plot.title=element_text(hjust=0.5))
+  plots[[n]] = p1
+}
+
+# 这里就看到深度降低到180个左右就可以降低很多的假阳性
+p2  = ggpubr::ggarrange(plotlist = plots,
+                        common.legend = FALSE, legend="right",ncol = 5,nrow = 2)
+p2
+ggsave("cs10.pdf",p2,width = 40,height = 12,limitsize = FALSE)
+
+
+```
+
+# 第七章：更新
+
+## 更新布局算法model_Gephi.3：游动你的模块
+
+```{R}
+library(ggClusterNet)
+library(tidyverse)
+library(phyloseq)
+#----------计算相关#----
+result = cor_Big_micro(ps = ps,
+                       N = 1000,
+                       # method.scale = "TMM",
+                       r.threshold=0.5,
+                       p.threshold=0.05,
+                       method = "spearman"
+)
+
+
+#--提取相关矩阵
+cor = result[[1]]
+
+#--使用model Gephi3算法展示网络#------
+tab = model_Gephi.3(
+  cor = cor,
+  t0 = 0.98, # 取值范围为0到1，表示位于两个已知点之间的中间位置
+  t2 = 1.2, # 每个聚类中心的缩放
+  t3 = 8) # 聚类取哪个点，数值越大，取点越靠近00点
+
+tem3 = tab[[1]]
+node.p = tab[[2]]
+head(tem3)
+aa = node.p$group %>% table() %>% as.data.frame() %>%
+  rename(  "group" = ".")
+
+tid = aa$group[aa$Freq < 60] %>% as.character()
+tem3$group = as.character(tem3$group)
+tem3$group[(tem3$group) %in% tid] = "miniModule"
+test_color5 <- RColorBrewer::brewer.pal(n = 12,name = "Set3")
+head(tem3)
+tem3$ID = NULL
+colnames(tem3)[5] = "Group"
+head(node.p)
+
+nodef = node.p %>% left_join(tem3,by = c("ID" = "OTU"))
+head(nodef)
+#-邓老师GCB文章结果复现#-----
+
+
+p2 <- ggplot() +
+  # geom_segment(aes(x = X1, y = Y1, xend = X2, yend = Y2,color = as.factor(cor)),
+  #                               data = edge, size = 0.5,alpha = 0.01) +
+  geom_point(aes(X1, X2,fill = Group),pch = 21, data = nodef,
+             color= "white",size = 6
+  ) +
+  scale_colour_brewer(palette = "Set1") +
+  scale_fill_hue() +
+  scale_fill_manual(values  =
+                      c(
+                        "#4DAF4A","#A65628","#FDAE61" ,"#FEE08B","#3288BD","grey80","grey90")
+  )+
+  scale_x_continuous(breaks = NULL) +
+  scale_y_continuous(breaks = NULL) +
+  scale_size(range = c(3, 20)) +
+  # labs( title = paste(layout,"network",sep = "_"))+
+  # geom_text_repel(aes(X1, X2,label=Phylum),size=4, data = plotcord)+
+  # discard default grid + titles in ggplot2
+  theme(panel.background = element_blank()) +
+  # theme(legend.position = "none") +
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank()) +
+  theme(legend.background = element_rect(colour = NA)) +
+  theme(panel.background = element_rect(fill = "white",  colour = NA)) +
+  theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank())
+p2
+# ggsave("cs0.pdf",p2,width = 15,height = 14)
+
+```
